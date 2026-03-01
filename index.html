@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Posizione Parcheggio">
+    <title>Posizione Parcheggio</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI0IiBmaWxsPSIjMWExYTJlIi8+PHRleHQgeD0iNjQiIHk9IjgwIiBmb250LXNpemU9IjcwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7wn5qXPC90ZXh0Pjwvc3ZnPg==">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg: #0f0f1a;
+            --card: #1a1a2e;
+            --card-light: #22223a;
+            --accent: #4f8cff;
+            --accent-glow: rgba(79, 140, 255, 0.25);
+            --success: #34d399;
+            --success-glow: rgba(52, 211, 153, 0.25);
+            --text: #e8e8f0;
+            --text-dim: #8888a8;
+            --danger: #ff6b6b;
+            --radius: 20px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100dvh;
+            overflow-x: hidden;
+            padding-bottom: calc(20px + var(--safe-bottom));
+        }
+
+        /* Ambient background animation */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(79, 140, 255, 0.06) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(52, 211, 153, 0.04) 0%, transparent 50%);
+            animation: ambientShift 15s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes ambientShift {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-5%, 5%) rotate(3deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 20px 16px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 16px 0 24px;
+            animation: fadeDown 0.6s ease-out;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 8px;
+            display: block;
+            animation: carBounce 2s ease-in-out infinite;
+            filter: drop-shadow(0 4px 12px rgba(79, 140, 255, 0.3));
+        }
+
+        @keyframes carBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Save button */
+        .save-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 20px 24px;
+            border: none;
+            border-radius: var(--radius);
+            background: linear-gradient(135deg, var(--accent), #3a6fd8);
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 24px var(--accent-glow), 0 0 0 0 var(--accent-glow);
+            animation: fadeUp 0.6s ease-out 0.1s both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .save-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .save-btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 2px 12px var(--accent-glow);
+        }
+
+        .save-btn:active::after { opacity: 1; }
+
+        .save-btn .icon {
+            font-size: 24px;
+            transition: transform 0.3s;
+        }
+
+        .save-btn.saving {
+            background: linear-gradient(135deg, var(--success), #2ab887);
+            box-shadow: 0 4px 24px var(--success-glow);
+            pointer-events: none;
+        }
+
+        .save-btn.saving .icon {
+            animation: pinDrop 0.5s ease-out;
+        }
+
+        @keyframes pinDrop {
+            0% { transform: translateY(-20px) scale(1.3); opacity: 0; }
+            60% { transform: translateY(2px) scale(0.95); }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        /* Card comune */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+            animation: fadeUp 0.6s ease-out 0.2s both;
+        }
+
+        /* Last parking */
+        .last-parking {
+            position: relative;
+        }
+
+        .last-parking .label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 14px;
+            font-weight: 600;
+        }
+
+        .parking-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .parking-time {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+        }
+
+        .parking-date {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        .parking-address {
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.4;
+            margin-top: 2px;
+        }
+
+        .parking-elapsed {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--accent);
+            background: rgba(79, 140, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 100px;
+            font-weight: 500;
+            margin-top: 4px;
+            width: fit-content;
+        }
+
+        .navigate-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            background: var(--card-light);
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .navigate-btn:active {
+            transform: scale(0.97);
+            background: rgba(79, 140, 255, 0.15);
+        }
+
+        .navigate-btn .nav-icon {
+            font-size: 20px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 32px 16px;
+            animation: fadeUp 0.6s ease-out 0.2s both;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            opacity: 0.6;
+        }
+
+        .empty-state p {
+            color: var(--text-dim);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        /* History */
+        .history-section {
+            margin-top: 16px;
+            animation: fadeUp 0.6s ease-out 0.3s both;
+        }
+
+        .history-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 14px 20px;
+            border: none;
+            border-radius: var(--radius);
+            background: var(--card);
+            color: var(--text-dim);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.04);
+            transition: all 0.25s ease;
+        }
+
+        .history-toggle:active {
+            transform: scale(0.98);
+        }
+
+        .history-toggle .chevron {
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 16px;
+        }
+
+        .history-toggle.open .chevron {
+            transform: rotate(180deg);
+        }
+
+        .history-list {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .history-list.open {
+            max-height: 2000px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            background: var(--card);
+            margin-top: 2px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.02);
+            animation: fadeUp 0.3s ease-out both;
+        }
+
+        .history-item:first-child {
+            margin-top: 8px;
+        }
+
+        .history-item:active {
+            transform: scale(0.98);
+            background: var(--card-light);
+        }
+
+        .history-item .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent);
+            flex-shrink: 0;
+            opacity: 0.6;
+        }
+
+        .history-item .h-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-item .h-date {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .history-item .h-address {
+            font-size: 12px;
+            color: var(--text-dim);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+
+        .history-item .h-arrow {
+            color: var(--text-dim);
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .history-clear {
+            display: block;
+            margin: 12px auto 0;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 100px;
+            background: rgba(255, 107, 107, 0.1);
+            color: var(--danger);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .history-clear:active {
+            transform: scale(0.95);
+            background: rgba(255, 107, 107, 0.2);
+        }
+
+        /* Maps chooser modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-sheet {
+            width: 100%;
+            max-width: 420px;
+            background: var(--card);
+            border-radius: 24px 24px 0 0;
+            padding: 12px 16px calc(16px + var(--safe-bottom));
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active .modal-sheet {
+            transform: translateY(0);
+        }
+
+        .modal-handle {
+            width: 40px;
+            height: 4px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 100px;
+            margin: 0 auto 16px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .map-option {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            background: var(--card-light);
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .map-option:active {
+            transform: scale(0.97);
+            background: rgba(79, 140, 255, 0.12);
+        }
+
+        .map-option .map-icon {
+            font-size: 28px;
+            width: 40px;
+            text-align: center;
+        }
+
+        .modal-cancel {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            background: transparent;
+            color: var(--text-dim);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120px);
+            background: var(--card);
+            color: var(--text);
+            padding: 14px 24px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 200;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 22px;
+            height: 22px;
+            border: 2.5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Install banner */
+        .install-banner {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: rgba(79, 140, 255, 0.1);
+            border-radius: 14px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            border: 1px solid rgba(79, 140, 255, 0.15);
+            animation: fadeUp 0.5s ease-out;
+            transition: all 0.25s;
+        }
+
+        .install-banner:active {
+            transform: scale(0.97);
+        }
+
+        .install-banner .install-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--accent);
+        }
+
+        .install-banner .install-icon {
+            font-size: 18px;
+        }
+
+        /* Pulse animation for the save button when no parking is saved */
+        .save-btn.pulse {
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 4px 24px var(--accent-glow), 0 0 0 0 var(--accent-glow); }
+            50% { box-shadow: 0 4px 24px var(--accent-glow), 0 0 0 12px transparent; }
+        }
+
+        /* Delete swipe hint */
+        .history-item .delete-hint {
+            display: none;
+            font-size: 12px;
+            color: var(--danger);
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* Confirm delete dialog */
+        .confirm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 150;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 20px;
+        }
+
+        .confirm-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .confirm-dialog {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 24px;
+            width: 100%;
+            max-width: 320px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .confirm-overlay.active .confirm-dialog {
+            transform: scale(1);
+        }
+
+        .confirm-dialog h3 {
+            font-size: 17px;
+            margin-bottom: 8px;
+        }
+
+        .confirm-dialog p {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+        }
+
+        .confirm-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .confirm-btns button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .confirm-btns .cancel-btn {
+            background: var(--card-light);
+            color: var(--text);
+        }
+
+        .confirm-btns .delete-btn {
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--danger);
+        }
+
+        .confirm-btns button:active {
+            transform: scale(0.95);
+        }
+
+        /* Scrollbar minimalista */
+        ::-webkit-scrollbar { width: 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <span class="logo">🚗</span>
+        <h1>Posizione Parcheggio</h1>
+    </div>
+
+    <!-- Install Banner -->
+    <div class="install-banner" id="installBanner" onclick="installApp()">
+        <span class="install-icon">📲</span>
+        <span class="install-text">Installa l'app</span>
+    </div>
+
+    <!-- Save Button -->
+    <button class="save-btn" id="saveBtn" onclick="saveParking()">
+        <span class="icon">📍</span>
+        <span class="btn-text">Salva Parcheggio</span>
+    </button>
+
+    <!-- Last Parking Card -->
+    <div id="lastParkingCard"></div>
+
+    <!-- History Section -->
+    <div id="historySection"></div>
+</div>
+
+<!-- Maps Modal -->
+<div class="modal-overlay" id="mapsModal" onclick="closeMapsModal(event)">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Naviga verso l'auto</div>
+        <div id="mapsOptions"></div>
+        <button class="modal-cancel" onclick="closeMapsModal()">Annulla</button>
+    </div>
+</div>
+
+<!-- Confirm Delete Dialog -->
+<div class="confirm-overlay" id="confirmOverlay" onclick="closeConfirm(event)">
+    <div class="confirm-dialog">
+        <h3>Cancella storico</h3>
+        <p>Vuoi eliminare tutto lo storico dei parcheggi?</p>
+        <div class="confirm-btns">
+            <button class="cancel-btn" onclick="closeConfirm()">Annulla</button>
+            <button class="delete-btn" onclick="confirmClear()">Elimina</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    // --- Data ---
+    const STORAGE_KEY = 'parkingHistory';
+
+    function getHistory() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        } catch { return []; }
+    }
+
+    function saveHistory(data) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    // --- Geolocation ---
+    function getCurrentPosition() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('Geolocalizzazione non supportata'));
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+                err => reject(err),
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
+        });
+    }
+
+    // --- Reverse Geocoding (free, no API key) ---
+    async function reverseGeocode(lat, lng) {
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=it`);
+            const data = await res.json();
+            if (data.address) {
+                const a = data.address;
+                const road = a.road || a.pedestrian || a.footway || '';
+                const number = a.house_number || '';
+                const city = a.city || a.town || a.village || a.municipality || '';
+                let parts = [];
+                if (road) parts.push(road + (number ? ' ' + number : ''));
+                if (city) parts.push(city);
+                return parts.join(', ') || data.display_name?.split(',').slice(0, 3).join(',') || '';
+            }
+            return '';
+        } catch { return ''; }
+    }
+
+    // --- Save Parking ---
+    async function saveParking() {
+        const btn = document.getElementById('saveBtn');
+        const btnText = btn.querySelector('.btn-text');
+        const btnIcon = btn.querySelector('.icon');
+
+        // Loading state
+        btnText.textContent = 'Localizzando...';
+        btnIcon.innerHTML = '<div class="spinner"></div>';
+        btn.style.pointerEvents = 'none';
+
+        try {
+            const pos = await getCurrentPosition();
+            const address = await reverseGeocode(pos.lat, pos.lng);
+            const entry = {
+                id: Date.now(),
+                lat: pos.lat,
+                lng: pos.lng,
+                accuracy: Math.round(pos.accuracy),
+                address: address,
+                timestamp: new Date().toISOString()
+            };
+
+            const history = getHistory();
+            history.unshift(entry);
+            // Keep max 50 entries
+            if (history.length > 50) history.length = 50;
+            saveHistory(history);
+
+            // Success animation
+            btn.classList.add('saving');
+            btnIcon.innerHTML = '';
+            btnIcon.textContent = '✓';
+            btnText.textContent = 'Salvato!';
+
+            setTimeout(() => {
+                btn.classList.remove('saving');
+                btnIcon.textContent = '📍';
+                btnText.textContent = 'Salva Parcheggio';
+                btn.style.pointerEvents = '';
+                btn.classList.remove('pulse');
+            }, 1800);
+
+            showToast('📍 Posizione salvata');
+            render();
+
+        } catch (err) {
+            btnIcon.innerHTML = '';
+            btnIcon.textContent = '📍';
+            btnText.textContent = 'Salva Parcheggio';
+            btn.style.pointerEvents = '';
+
+            if (err.code === 1) {
+                showToast('⚠️ Permesso GPS negato');
+            } else if (err.code === 2) {
+                showToast('⚠️ Posizione non disponibile');
+            } else if (err.code === 3) {
+                showToast('⚠️ Timeout GPS');
+            } else {
+                showToast('⚠️ ' + err.message);
+            }
+        }
+    }
+
+    // --- Time helpers ---
+    function formatTime(iso) {
+        const d = new Date(iso);
+        return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatDate(iso) {
+        const d = new Date(iso);
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        if (d.toDateString() === today.toDateString()) return 'Oggi';
+        if (d.toDateString() === yesterday.toDateString()) return 'Ieri';
+        return d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
+    }
+
+    function formatElapsed(iso) {
+        const diff = Date.now() - new Date(iso).getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) return 'Adesso';
+        if (mins < 60) return `${mins} min fa`;
+        const hrs = Math.floor(mins / 60);
+        if (hrs < 24) return `${hrs} or${hrs === 1 ? 'a' : 'e'} fa`;
+        const days = Math.floor(hrs / 24);
+        return `${days} giorn${days === 1 ? 'o' : 'i'} fa`;
+    }
+
+    function formatDateFull(iso) {
+        return formatDate(iso) + ' alle ' + formatTime(iso);
+    }
+
+    // --- Render ---
+    let historyOpen = false;
+    let elapsedInterval;
+
+    function render() {
+        const history = getHistory();
+        const lastCard = document.getElementById('lastParkingCard');
+        const historySection = document.getElementById('historySection');
+        const saveBtn = document.getElementById('saveBtn');
+
+        // Pulse if no parking saved
+        if (history.length === 0) {
+            saveBtn.classList.add('pulse');
+        } else {
+            saveBtn.classList.remove('pulse');
+        }
+
+        // Last parking
+        if (history.length === 0) {
+            lastCard.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🅿️</div>
+                    <p>Salva la posizione della tua auto<br>per ritrovarla facilmente</p>
+                </div>`;
+        } else {
+            const p = history[0];
+            lastCard.innerHTML = `
+                <div class="card last-parking">
+                    <div class="label">Ultimo parcheggio</div>
+                    <div class="parking-info">
+                        <div>
+                            <div class="parking-time">${formatTime(p.timestamp)}</div>
+                            <div class="parking-date">${formatDate(p.timestamp)}</div>
+                        </div>
+                        ${p.address ? `<div class="parking-address">📍 ${p.address}</div>` : ''}
+                        <div class="parking-elapsed" id="elapsedBadge">🕐 ${formatElapsed(p.timestamp)}</div>
+                        <button class="navigate-btn" onclick="openMapsModal(${p.lat}, ${p.lng})">
+                            <span class="nav-icon">🚶</span>
+                            Indicazioni a piedi
+                        </button>
+                    </div>
+                </div>`;
+
+            // Update elapsed time every minute
+            clearInterval(elapsedInterval);
+            elapsedInterval = setInterval(() => {
+                const badge = document.getElementById('elapsedBadge');
+                if (badge) badge.textContent = '🕐 ' + formatElapsed(p.timestamp);
+            }, 60000);
+        }
+
+        // History
+        if (history.length > 1) {
+            const olderItems = history.slice(1);
+            historySection.innerHTML = `
+                <div class="history-section">
+                    <button class="history-toggle ${historyOpen ? 'open' : ''}" onclick="toggleHistory()">
+                        <span>Storico (${olderItems.length})</span>
+                        <span class="chevron">▼</span>
+                    </button>
+                    <div class="history-list ${historyOpen ? 'open' : ''}" id="historyList">
+                        ${olderItems.map((item, i) => `
+                            <div class="history-item" onclick="openMapsModal(${item.lat}, ${item.lng})" style="animation-delay: ${i * 0.05}s">
+                                <div class="dot"></div>
+                                <div class="h-info">
+                                    <div class="h-date">${formatDateFull(item.timestamp)}</div>
+                                    <div class="h-address">${item.address || `${item.lat.toFixed(5)}, ${item.lng.toFixed(5)}`}</div>
+                                </div>
+                                <span class="h-arrow">›</span>
+                            </div>
+                        `).join('')}
+                        <button class="history-clear" onclick="event.stopPropagation(); askClear()">Cancella storico</button>
+                    </div>
+                </div>`;
+        } else {
+            historySection.innerHTML = '';
+        }
+    }
+
+    function toggleHistory() {
+        historyOpen = !historyOpen;
+        const toggle = document.querySelector('.history-toggle');
+        const list = document.getElementById('historyList');
+        if (toggle) toggle.classList.toggle('open', historyOpen);
+        if (list) list.classList.toggle('open', historyOpen);
+    }
+
+    // --- Maps Modal ---
+    let pendingLat, pendingLng;
+
+    function openMapsModal(lat, lng) {
+        pendingLat = lat;
+        pendingLng = lng;
+        const opts = document.getElementById('mapsOptions');
+
+        const mapsApps = [
+            { name: 'Google Maps', icon: '🗺️', url: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking` },
+            { name: 'Apple Mappe', icon: '🍎', url: `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=w` },
+            { name: 'Waze', icon: '🚙', url: `https://waze.com/ul?ll=${lat},${lng}&navigate=yes` },
+        ];
+
+        opts.innerHTML = mapsApps.map(app => `
+            <button class="map-option" onclick="window.open('${app.url}', '_blank')">
+                <span class="map-icon">${app.icon}</span>
+                ${app.name}
+            </button>
+        `).join('');
+
+        document.getElementById('mapsModal').classList.add('active');
+    }
+
+    function closeMapsModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById('mapsModal').classList.remove('active');
+    }
+
+    // --- Confirm Clear ---
+    function askClear() {
+        document.getElementById('confirmOverlay').classList.add('active');
+    }
+
+    function closeConfirm(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById('confirmOverlay').classList.remove('active');
+    }
+
+    function confirmClear() {
+        const history = getHistory();
+        // Keep the most recent one
+        if (history.length > 0) {
+            saveHistory([history[0]]);
+        }
+        historyOpen = false;
+        closeConfirm();
+        render();
+        showToast('🗑️ Storico cancellato');
+    }
+
+    // --- Toast ---
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // --- PWA Install ---
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('installBanner').style.display = 'flex';
+    });
+
+    async function installApp() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                document.getElementById('installBanner').style.display = 'none';
+                showToast('✅ App installata!');
+            }
+            deferredPrompt = null;
+        }
+    }
+
+    window.addEventListener('appinstalled', () => {
+        document.getElementById('installBanner').style.display = 'none';
+        deferredPrompt = null;
+    });
+
+    // --- Service Worker Registration ---
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+
+    // --- Init ---
+    render();
+</script>
+</body>
+</html>
