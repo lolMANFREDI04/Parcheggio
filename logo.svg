@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+    <linearGradient id="carGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f8cff"/>
+      <stop offset="100%" style="stop-color:#3a6fd8"/>
+    </linearGradient>
+    <linearGradient id="pinGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b6b"/>
+      <stop offset="100%" style="stop-color:#e55555"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="96" fill="url(#bgGrad)"/>
+  
+  <!-- Parking "P" sign in background -->
+  <rect x="340" y="80" width="100" height="130" rx="14" fill="#4f8cff" opacity="0.15"/>
+  <text x="390" y="182" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="100" font-weight="800" fill="#4f8cff" text-anchor="middle" opacity="0.25">P</text>
+  
+  <!-- Road / ground -->
+  <rect x="40" y="350" width="432" height="8" rx="4" fill="#ffffff" opacity="0.08"/>
+  
+  <!-- Parking lines -->
+  <rect x="100" y="290" width="4" height="68" rx="2" fill="#ffffff" opacity="0.1"/>
+  <rect x="250" y="290" width="4" height="68" rx="2" fill="#ffffff" opacity="0.1"/>
+  <rect x="400" y="290" width="4" height="68" rx="2" fill="#ffffff" opacity="0.1"/>
+  
+  <!-- Car body -->
+  <g transform="translate(120, 210)">
+    <!-- Car bottom / chassis -->
+    <rect x="10" y="80" width="230" height="65" rx="16" fill="url(#carGrad)"/>
+    
+    <!-- Car roof -->
+    <path d="M55,80 L80,30 L185,30 L210,80 Z" fill="url(#carGrad)" opacity="0.9"/>
+    
+    <!-- Windows -->
+    <path d="M70,76 L88,38 L135,38 L135,76 Z" fill="#0f0f1a" opacity="0.7"/>
+    <path d="M145,76 L145,38 L195,38 L185,76 Z" fill="#0f0f1a" opacity="0.7"/>
+    
+    <!-- Window shine -->
+    <path d="M72,74 L89,40 L96,40 L79,74 Z" fill="#ffffff" opacity="0.1"/>
+    
+    <!-- Headlights -->
+    <rect x="225" y="95" width="22" height="12" rx="4" fill="#ffdd57" opacity="0.9"/>
+    <rect x="3" y="95" width="22" height="12" rx="4" fill="#ff6b6b" opacity="0.7"/>
+    
+    <!-- Wheels -->
+    <circle cx="70" cy="148" r="24" fill="#1a1a2e"/>
+    <circle cx="70" cy="148" r="16" fill="#333355"/>
+    <circle cx="70" cy="148" r="6" fill="#555577"/>
+    
+    <circle cx="190" cy="148" r="24" fill="#1a1a2e"/>
+    <circle cx="190" cy="148" r="16" fill="#333355"/>
+    <circle cx="190" cy="148" r="6" fill="#555577"/>
+    
+    <!-- Body highlight -->
+    <rect x="20" y="82" width="210" height="4" rx="2" fill="#ffffff" opacity="0.1"/>
+    
+    <!-- Door line -->
+    <line x1="130" y1="82" x2="130" y2="130" stroke="#3a6fd8" stroke-width="1.5" opacity="0.4"/>
+    
+    <!-- Door handle -->
+    <rect x="154" y="103" width="18" height="4" rx="2" fill="#ffffff" opacity="0.2"/>
+  </g>
+  
+  <!-- Location pin -->
+  <g transform="translate(310, 100)">
+    <path d="M40,0 C17.9,0 0,17.9 0,40 C0,68 40,100 40,100 C40,100 80,68 80,40 C80,17.9 62.1,0 40,0 Z" fill="url(#pinGrad)"/>
+    <circle cx="40" cy="38" r="16" fill="#ffffff" opacity="0.9"/>
+    <circle cx="40" cy="38" r="8" fill="#ff6b6b"/>
+    <!-- Pin shadow -->
+    <ellipse cx="40" cy="108" rx="16" ry="5" fill="#000000" opacity="0.15"/>
+  </g>
+</svg>

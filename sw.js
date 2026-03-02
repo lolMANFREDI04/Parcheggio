@@ -1,7 +1,9 @@
-const CACHE_NAME = 'parcheggio-v1';
+const CACHE_NAME = 'parcheggio-v2';
 const ASSETS = [
     './index.html',
-    './manifest.json'
+    './manifest.json',
+    './logo.svg',
+    './og-image.svg'
 ];
 
 // Install

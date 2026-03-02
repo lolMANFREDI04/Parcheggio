@@ -7,9 +7,49 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Posizione Parcheggio">
-    <title>Posizione Parcheggio</title>
+    <title>Posizione Parcheggio | Manfredi Lo Cicero</title>
+    <meta name="description" content="Posizione Parcheggio di Manfredi Lo Cicero – Salva la posizione della tua auto, visualizza lo storico e ottieni le indicazioni a piedi per ritrovarla. Web app gratuita.">
+    <meta name="keywords" content="Manfredi Lo Cicero, posizione parcheggio, salva parcheggio, ritrova auto, parcheggio app, dove ho parcheggiato">
+    <meta name="author" content="Manfredi Lo Cicero">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://manfredilocicero.it/">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Posizione Parcheggio | Manfredi Lo Cicero">
+    <meta property="og:description" content="Salva la posizione della tua auto e ritrovala facilmente con le indicazioni a piedi. Web app di Manfredi Lo Cicero.">
+    <meta property="og:url" content="https://manfredilocicero.it/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Posizione Parcheggio">
+    <meta property="og:image" content="https://manfredilocicero.it/og-image.svg">
+    <meta property="og:locale" content="it_IT">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Posizione Parcheggio | Manfredi Lo Cicero">
+    <meta name="twitter:description" content="Salva la posizione della tua auto e ritrovala facilmente.">
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Posizione Parcheggio",
+        "url": "https://manfredilocicero.it",
+        "description": "Salva la posizione della tua auto, visualizza lo storico dei parcheggi e ottieni indicazioni a piedi per ritrovarla.",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "All",
+        "author": {
+            "@type": "Person",
+            "name": "Manfredi Lo Cicero",
+            "url": "https://manfredilocicero.it"
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR"
+        }
+    }
+    </script>
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI0IiBmaWxsPSIjMWExYTJlIi8+PHRleHQgeD0iNjQiIHk9IjgwIiBmb250LXNpemU9IjcwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7wn5qXPC90ZXh0Pjwvc3ZnPg==">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="logo.svg">
     <style>
         * {
             margin: 0;
@@ -78,11 +118,20 @@
         }
 
         .logo {
-            font-size: 48px;
-            margin-bottom: 8px;
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 8px;
             display: block;
             animation: carBounce 2s ease-in-out infinite;
             filter: drop-shadow(0 4px 12px rgba(79, 140, 255, 0.3));
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-weight: 400;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
         }
 
         @keyframes carBounce {
@@ -668,8 +717,9 @@
 <div class="container">
     <!-- Header -->
     <div class="header">
-        <span class="logo">🚗</span>
+        <img src="logo.svg" alt="Posizione Parcheggio - Manfredi Lo Cicero" class="logo" width="56" height="56">
         <h1>Posizione Parcheggio</h1>
+        <p class="subtitle">di Manfredi Lo Cicero</p>
     </div>
 
     <!-- Install Banner -->
@@ -715,6 +765,12 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+
+<!-- Footer SEO -->
+<footer style="text-align:center; padding:32px 16px 16px; opacity:0.35; font-size:12px; color:#8888a8;">
+    <p>Posizione Parcheggio &copy; 2026 Manfredi Lo Cicero</p>
+    <p style="margin-top:4px;"><a href="https://manfredilocicero.it" style="color:#4f8cff; text-decoration:none;">manfredilocicero.it</a></p>
+</footer>
 
 <script>
     // --- Data ---

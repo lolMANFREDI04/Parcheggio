@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f1a"/>
+      <stop offset="100%" style="stop-color:#1a1a2e"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f8cff"/>
+      <stop offset="100%" style="stop-color:#3a6fd8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+  
+  <!-- Big car emoji area -->
+  <text x="350" y="340" font-size="180" text-anchor="middle" opacity="0.3">🚗</text>
+  
+  <!-- Pin -->
+  <g transform="translate(480, 140)">
+    <path d="M40,0 C17.9,0 0,17.9 0,40 C0,68 40,100 40,100 C40,100 80,68 80,40 C80,17.9 62.1,0 40,0 Z" fill="#ff6b6b"/>
+    <circle cx="40" cy="38" r="16" fill="#ffffff" opacity="0.9"/>
+  </g>
+  
+  <!-- Title -->
+  <text x="600" y="350" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="72" font-weight="800" fill="#e8e8f0" text-anchor="middle">Posizione Parcheggio</text>
+  
+  <!-- Subtitle -->
+  <text x="600" y="420" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="32" font-weight="400" fill="#4f8cff" text-anchor="middle">di Manfredi Lo Cicero</text>
+  
+  <!-- Description -->
+  <text x="600" y="490" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="24" font-weight="400" fill="#8888a8" text-anchor="middle">Salva e ritrova la tua auto facilmente</text>
+  
+  <!-- Domain -->
+  <text x="600" y="570" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" font-weight="500" fill="#4f8cff" text-anchor="middle" opacity="0.7">manfredilocicero.it</text>
+</svg>
