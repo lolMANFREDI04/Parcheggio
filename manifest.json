@@ -1,12 +1,17 @@
 {
+    "id": "/",
     "name": "Posizione Parcheggio",
     "short_name": "Parcheggio",
     "description": "Salva e ritrova la posizione della tua auto",
     "start_url": "./index.html",
+    "scope": ".",
     "display": "standalone",
     "background_color": "#0f0f1a",
     "theme_color": "#1a1a2e",
     "orientation": "portrait",
+    "lang": "it",
+    "dir": "ltr",
+    "categories": ["utilities"],
     "icons": [
         {
             "src": "logo.svg",

@@ -1,18 +1,27 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Security -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://nominatim.openstreetmap.org; worker-src 'self'; frame-ancestors 'none';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <!-- App -->
     <meta name="theme-color" content="#1a1a2e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Posizione Parcheggio">
     <title>Posizione Parcheggio | Manfredi Lo Cicero</title>
+    <!-- SEO -->
     <meta name="description" content="Posizione Parcheggio di Manfredi Lo Cicero – Salva la posizione della tua auto, visualizza lo storico e ottieni le indicazioni a piedi per ritrovarla. Web app gratuita.">
     <meta name="keywords" content="Manfredi Lo Cicero, posizione parcheggio, salva parcheggio, ritrova auto, parcheggio app, dove ho parcheggiato">
     <meta name="author" content="Manfredi Lo Cicero">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://manfredilocicero.it/">
+    <!-- Preconnect for geocoding API -->
+    <link rel="preconnect" href="https://nominatim.openstreetmap.org" crossorigin>
+    <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org">
     <!-- Open Graph -->
     <meta property="og:title" content="Posizione Parcheggio | Manfredi Lo Cicero">
     <meta property="og:description" content="Salva la posizione della tua auto e ritrovala facilmente con le indicazioni a piedi. Web app di Manfredi Lo Cicero.">
@@ -20,11 +29,14 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Posizione Parcheggio">
     <meta property="og:image" content="https://manfredilocicero.it/og-image.svg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:locale" content="it_IT">
     <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary">
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Posizione Parcheggio | Manfredi Lo Cicero">
     <meta name="twitter:description" content="Salva la posizione della tua auto e ritrovala facilmente.">
+    <meta name="twitter:image" content="https://manfredilocicero.it/og-image.svg">
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
@@ -35,6 +47,8 @@
         "description": "Salva la posizione della tua auto, visualizza lo storico dei parcheggi e ottieni indicazioni a piedi per ritrovarla.",
         "applicationCategory": "UtilitiesApplication",
         "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript, Geolocation API",
+        "softwareVersion": "3.0",
         "author": {
             "@type": "Person",
             "name": "Manfredi Lo Cicero",
@@ -44,14 +58,17 @@
             "@type": "Offer",
             "price": "0",
             "priceCurrency": "EUR"
-        }
+        },
+        "inLanguage": "it"
     }
     </script>
+    <!-- Manifest & Icons -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="logo.svg">
     <style>
-        * {
+        /* ===== Reset & Variables ===== */
+        *, *::before, *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -67,10 +84,17 @@
             --success: #34d399;
             --success-glow: rgba(52, 211, 153, 0.25);
             --text: #e8e8f0;
-            --text-dim: #8888a8;
+            --text-dim: #9090b0;
             --danger: #ff6b6b;
             --radius: 20px;
             --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* ===== Base ===== */
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
@@ -80,28 +104,76 @@
             min-height: 100dvh;
             overflow-x: hidden;
             padding-bottom: calc(20px + var(--safe-bottom));
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeSpeed;
         }
 
-        /* Ambient background animation */
+        /* Ambient background — GPU layer */
         body::before {
             content: '';
             position: fixed;
-            top: -50%;
-            left: -50%;
+            inset: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle at 30% 20%, rgba(79, 140, 255, 0.06) 0%, transparent 50%),
-                        radial-gradient(circle at 70% 80%, rgba(52, 211, 153, 0.04) 0%, transparent 50%);
-            animation: ambientShift 15s ease-in-out infinite alternate;
+            background:
+                radial-gradient(circle at 30% 20%, rgba(79, 140, 255, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(52, 211, 153, 0.04) 0%, transparent 50%);
+            animation: ambientShift 20s ease-in-out infinite alternate;
             pointer-events: none;
             z-index: 0;
+            transform: translate3d(0,0,0);
+            will-change: transform;
         }
 
         @keyframes ambientShift {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(-5%, 5%) rotate(3deg); }
+            0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+            100% { transform: translate3d(-5%, 5%, 0) rotate(3deg); }
         }
 
+        /* ===== Accessibility ===== */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 0 0 12px 12px;
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 9999;
+            text-decoration: none;
+            transition: top 0.2s var(--ease-out);
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        :focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        /* ===== Layout ===== */
         .container {
             position: relative;
             z-index: 1;
@@ -110,11 +182,11 @@
             padding: 20px 16px;
         }
 
-        /* Header */
+        /* ===== Header ===== */
         .header {
             text-align: center;
             padding: 16px 0 24px;
-            animation: fadeDown 0.6s ease-out;
+            animation: fadeDown 0.5s var(--ease-out);
         }
 
         .logo {
@@ -122,21 +194,14 @@
             height: 56px;
             margin: 0 auto 8px;
             display: block;
-            animation: carBounce 2s ease-in-out infinite;
+            animation: carFloat 3s ease-in-out infinite;
             filter: drop-shadow(0 4px 12px rgba(79, 140, 255, 0.3));
+            transform: translate3d(0,0,0);
         }
 
-        .subtitle {
-            font-size: 12px;
-            color: var(--text-dim);
-            font-weight: 400;
-            margin-top: 2px;
-            letter-spacing: 0.5px;
-        }
-
-        @keyframes carBounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-4px); }
+        @keyframes carFloat {
+            0%, 100% { transform: translate3d(0, 0, 0); }
+            50%      { transform: translate3d(0, -5px, 0); }
         }
 
         .header h1 {
@@ -149,7 +214,15 @@
             background-clip: text;
         }
 
-        /* Save button */
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-dim);
+            font-weight: 400;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== Save Button ===== */
         .save-btn {
             display: flex;
             align-items: center;
@@ -160,28 +233,47 @@
             border: none;
             border-radius: var(--radius);
             background: linear-gradient(135deg, var(--accent), #3a6fd8);
-            color: white;
+            color: #fff;
             font-size: 18px;
             font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 4px 24px var(--accent-glow), 0 0 0 0 var(--accent-glow);
-            animation: fadeUp 0.6s ease-out 0.1s both;
+            animation: fadeUp 0.5s var(--ease-out) 0.08s both;
             position: relative;
             overflow: hidden;
+            transform: translate3d(0,0,0);
+            transition: transform 0.15s var(--ease-out), box-shadow 0.2s ease;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* Ripple container */
+        .save-btn .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            transform: scale(0);
+            animation: rippleAnim 0.5s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes rippleAnim {
+            to { transform: scale(4); opacity: 0; }
         }
 
         .save-btn::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1));
+            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.08));
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.15s ease;
         }
 
         .save-btn:active {
-            transform: scale(0.97);
+            transform: scale3d(0.96, 0.96, 1);
             box-shadow: 0 2px 12px var(--accent-glow);
         }
 
@@ -189,7 +281,11 @@
 
         .save-btn .icon {
             font-size: 24px;
-            transition: transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
         }
 
         .save-btn.saving {
@@ -199,32 +295,70 @@
         }
 
         .save-btn.saving .icon {
-            animation: pinDrop 0.5s ease-out;
+            animation: successPop 0.4s var(--ease-spring);
         }
 
-        @keyframes pinDrop {
-            0% { transform: translateY(-20px) scale(1.3); opacity: 0; }
-            60% { transform: translateY(2px) scale(0.95); }
-            100% { transform: translateY(0) scale(1); opacity: 1; }
+        @keyframes successPop {
+            0%   { transform: scale(0) rotate(-45deg); opacity: 0; }
+            60%  { transform: scale(1.2) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
 
-        /* Card comune */
+        .save-btn.pulse {
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 4px 24px var(--accent-glow), 0 0 0 0 rgba(79, 140, 255, 0.3); }
+            50%      { box-shadow: 0 4px 24px var(--accent-glow), 0 0 0 14px rgba(79, 140, 255, 0); }
+        }
+
+        /* ===== Progress bar for save ===== */
+        .save-progress {
+            height: 3px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 2px;
+            margin-top: 10px;
+            overflow: hidden;
+            opacity: 0;
+            transform: scaleY(0);
+            transform-origin: top;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .save-progress.active {
+            opacity: 1;
+            transform: scaleY(1);
+        }
+
+        .save-progress .bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* ===== Card ===== */
         .card {
             background: var(--card);
             border-radius: var(--radius);
             padding: 20px;
             margin-top: 16px;
             border: 1px solid rgba(255,255,255,0.04);
-            animation: fadeUp 0.6s ease-out 0.2s both;
+            animation: slideUp 0.4s var(--ease-out) both;
+            contain: layout style;
+            transform: translate3d(0,0,0);
         }
 
-        /* Last parking */
-        .last-parking {
-            position: relative;
+        @keyframes slideUp {
+            from { opacity: 0; transform: translate3d(0, 20px, 0); }
+            to   { opacity: 1; transform: translate3d(0, 0, 0); }
         }
 
+        /* ===== Last Parking ===== */
         .last-parking .label {
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
             color: var(--text-dim);
@@ -239,15 +373,17 @@
         }
 
         .parking-time {
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            line-height: 1.1;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
         }
 
         .parking-date {
             font-size: 14px;
             color: var(--text-dim);
+            margin-top: 2px;
         }
 
         .parking-address {
@@ -255,6 +391,11 @@
             color: var(--text-dim);
             line-height: 1.4;
             margin-top: 2px;
+            transition: opacity 0.3s ease;
+        }
+
+        .parking-address.loading {
+            opacity: 0.5;
         }
 
         .parking-elapsed {
@@ -264,11 +405,12 @@
             font-size: 13px;
             color: var(--accent);
             background: rgba(79, 140, 255, 0.1);
-            padding: 6px 12px;
+            padding: 6px 14px;
             border-radius: 100px;
             font-weight: 500;
             margin-top: 4px;
             width: fit-content;
+            font-variant-numeric: tabular-nums;
         }
 
         .navigate-btn {
@@ -278,50 +420,77 @@
             gap: 10px;
             width: 100%;
             padding: 16px;
-            border: none;
+            border: 1px solid rgba(255,255,255,0.06);
             border-radius: 14px;
             background: var(--card-light);
             color: var(--text);
             font-size: 16px;
             font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
             margin-top: 16px;
-            transition: all 0.25s ease;
-            border: 1px solid rgba(255,255,255,0.05);
+            transform: translate3d(0,0,0);
+            transition: transform 0.15s var(--ease-out), background 0.15s ease, box-shadow 0.2s ease;
+            touch-action: manipulation;
         }
 
         .navigate-btn:active {
-            transform: scale(0.97);
+            transform: scale3d(0.97, 0.97, 1);
             background: rgba(79, 140, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.1);
         }
 
         .navigate-btn .nav-icon {
             font-size: 20px;
         }
 
-        /* Empty state */
+        /* ===== Accuracy badge ===== */
+        .accuracy-badge {
+            font-size: 11px;
+            color: var(--text-dim);
+            opacity: 0.6;
+            margin-top: 2px;
+        }
+
+        .accuracy-badge.good { color: var(--success); opacity: 0.8; }
+
+        /* ===== Empty State ===== */
         .empty-state {
             text-align: center;
-            padding: 32px 16px;
-            animation: fadeUp 0.6s ease-out 0.2s both;
+            padding: 40px 16px;
+            animation: slideUp 0.4s var(--ease-out) 0.1s both;
         }
 
         .empty-state .empty-icon {
-            font-size: 56px;
+            font-size: 64px;
             margin-bottom: 16px;
-            opacity: 0.6;
+            display: block;
+            animation: emptyFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes emptyFloat {
+            0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+            50%      { transform: translate3d(0, -8px, 0) scale(1.02); }
         }
 
         .empty-state p {
             color: var(--text-dim);
             font-size: 15px;
-            line-height: 1.5;
+            line-height: 1.6;
         }
 
-        /* History */
+        .empty-state .hint {
+            display: block;
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--accent);
+            opacity: 0.7;
+        }
+
+        /* ===== History ===== */
         .history-section {
             margin-top: 16px;
-            animation: fadeUp 0.6s ease-out 0.3s both;
+            animation: slideUp 0.4s var(--ease-out) 0.15s both;
         }
 
         .history-toggle {
@@ -330,38 +499,41 @@
             justify-content: space-between;
             width: 100%;
             padding: 14px 20px;
-            border: none;
+            border: 1px solid rgba(255,255,255,0.04);
             border-radius: var(--radius);
             background: var(--card);
             color: var(--text-dim);
             font-size: 14px;
             font-weight: 500;
+            font-family: inherit;
             cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.04);
-            transition: all 0.25s ease;
+            transform: translate3d(0,0,0);
+            transition: transform 0.15s var(--ease-out);
+            touch-action: manipulation;
         }
 
         .history-toggle:active {
-            transform: scale(0.98);
+            transform: scale3d(0.98, 0.98, 1);
         }
 
         .history-toggle .chevron {
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s var(--ease-spring);
             font-size: 16px;
+            display: inline-block;
         }
 
-        .history-toggle.open .chevron {
+        .history-toggle[aria-expanded="true"] .chevron {
             transform: rotate(180deg);
         }
 
         .history-list {
             overflow: hidden;
             max-height: 0;
-            transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: max-height 0.4s var(--ease-out);
         }
 
         .history-list.open {
-            max-height: 2000px;
+            max-height: 3000px;
         }
 
         .history-item {
@@ -373,9 +545,21 @@
             margin-top: 2px;
             border-radius: 14px;
             cursor: pointer;
-            transition: all 0.2s ease;
             border: 1px solid rgba(255,255,255,0.02);
-            animation: fadeUp 0.3s ease-out both;
+            text-align: left;
+            width: 100%;
+            color: var(--text);
+            font-family: inherit;
+            font-size: inherit;
+            transform: translate3d(0,0,0);
+            transition: transform 0.15s var(--ease-out), background 0.15s ease;
+            touch-action: manipulation;
+            animation: itemSlide 0.3s var(--ease-out) both;
+        }
+
+        @keyframes itemSlide {
+            from { opacity: 0; transform: translate3d(0, 8px, 0); }
+            to   { opacity: 1; transform: translate3d(0, 0, 0); }
         }
 
         .history-item:first-child {
@@ -383,7 +567,7 @@
         }
 
         .history-item:active {
-            transform: scale(0.98);
+            transform: scale3d(0.98, 0.98, 1);
             background: var(--card-light);
         }
 
@@ -404,6 +588,7 @@
         .history-item .h-date {
             font-size: 14px;
             font-weight: 600;
+            display: block;
         }
 
         .history-item .h-address {
@@ -413,47 +598,56 @@
             overflow: hidden;
             text-overflow: ellipsis;
             margin-top: 2px;
+            display: block;
         }
 
         .history-item .h-arrow {
             color: var(--text-dim);
-            font-size: 16px;
+            font-size: 18px;
             flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+
+        .history-item:active .h-arrow {
+            transform: translateX(3px);
         }
 
         .history-clear {
             display: block;
-            margin: 12px auto 0;
-            padding: 10px 20px;
+            margin: 14px auto 4px;
+            padding: 10px 24px;
             border: none;
             border-radius: 100px;
-            background: rgba(255, 107, 107, 0.1);
+            background: rgba(255, 107, 107, 0.08);
             color: var(--danger);
             font-size: 13px;
             font-weight: 500;
+            font-family: inherit;
             cursor: pointer;
-            transition: all 0.25s;
+            transform: translate3d(0,0,0);
+            transition: transform 0.15s var(--ease-out), background 0.15s ease;
+            touch-action: manipulation;
         }
 
         .history-clear:active {
-            transform: scale(0.95);
-            background: rgba(255, 107, 107, 0.2);
+            transform: scale3d(0.95, 0.95, 1);
+            background: rgba(255, 107, 107, 0.18);
         }
 
-        /* Maps chooser modal */
+        /* ===== Modal (Maps Chooser) ===== */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             z-index: 100;
             display: flex;
             align-items: flex-end;
             justify-content: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.25s ease;
         }
 
         .modal-overlay.active {
@@ -467,12 +661,12 @@
             background: var(--card);
             border-radius: 24px 24px 0 0;
             padding: 12px 16px calc(16px + var(--safe-bottom));
-            transform: translateY(100%);
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translate3d(0, 100%, 0);
+            transition: transform 0.35s var(--ease-out);
         }
 
         .modal-overlay.active .modal-sheet {
-            transform: translateY(0);
+            transform: translate3d(0, 0, 0);
         }
 
         .modal-handle {
@@ -496,20 +690,22 @@
             gap: 14px;
             width: 100%;
             padding: 16px;
-            border: none;
+            border: 1px solid rgba(255,255,255,0.04);
             border-radius: 16px;
             background: var(--card-light);
             color: var(--text);
             font-size: 16px;
             font-weight: 500;
+            font-family: inherit;
             cursor: pointer;
             margin-bottom: 8px;
-            transition: all 0.2s ease;
-            border: 1px solid rgba(255,255,255,0.04);
+            transform: translate3d(0,0,0);
+            transition: transform 0.15s var(--ease-out), background 0.15s ease;
+            touch-action: manipulation;
         }
 
         .map-option:active {
-            transform: scale(0.97);
+            transform: scale3d(0.97, 0.97, 1);
             background: rgba(79, 140, 255, 0.12);
         }
 
@@ -528,121 +724,26 @@
             color: var(--text-dim);
             font-size: 15px;
             font-weight: 500;
+            font-family: inherit;
             cursor: pointer;
             margin-top: 4px;
+            touch-action: manipulation;
         }
 
-        /* Toast notification */
-        .toast {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-120px);
-            background: var(--card);
-            color: var(--text);
-            padding: 14px 24px;
-            border-radius: 100px;
-            font-size: 14px;
-            font-weight: 500;
-            z-index: 200;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.06);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            white-space: nowrap;
-        }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* Loading spinner */
-        .spinner {
-            width: 22px;
-            height: 22px;
-            border: 2.5px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Animations */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeDown {
-            from { opacity: 0; transform: translateY(-12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Install banner */
-        .install-banner {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 12px 20px;
-            background: rgba(79, 140, 255, 0.1);
-            border-radius: 14px;
-            margin-bottom: 16px;
-            cursor: pointer;
-            border: 1px solid rgba(79, 140, 255, 0.15);
-            animation: fadeUp 0.5s ease-out;
-            transition: all 0.25s;
-        }
-
-        .install-banner:active {
-            transform: scale(0.97);
-        }
-
-        .install-banner .install-text {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--accent);
-        }
-
-        .install-banner .install-icon {
-            font-size: 18px;
-        }
-
-        /* Pulse animation for the save button when no parking is saved */
-        .save-btn.pulse {
-            animation: pulse 2.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 4px 24px var(--accent-glow), 0 0 0 0 var(--accent-glow); }
-            50% { box-shadow: 0 4px 24px var(--accent-glow), 0 0 0 12px transparent; }
-        }
-
-        /* Delete swipe hint */
-        .history-item .delete-hint {
-            display: none;
-            font-size: 12px;
-            color: var(--danger);
-            margin-left: auto;
-            flex-shrink: 0;
-        }
-
-        /* Confirm delete dialog */
+        /* ===== Confirm Dialog ===== */
         .confirm-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             z-index: 150;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.25s ease;
             padding: 20px;
         }
 
@@ -658,8 +759,8 @@
             width: 100%;
             max-width: 320px;
             text-align: center;
-            transform: scale(0.9);
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(0.92);
+            transition: transform 0.3s var(--ease-spring);
             border: 1px solid rgba(255,255,255,0.06);
         }
 
@@ -690,8 +791,11 @@
             border-radius: 12px;
             font-size: 15px;
             font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
-            transition: all 0.2s;
+            transform: translate3d(0,0,0);
+            transition: transform 0.15s var(--ease-out);
+            touch-action: manipulation;
         }
 
         .confirm-btns .cancel-btn {
@@ -705,396 +809,800 @@
         }
 
         .confirm-btns button:active {
-            transform: scale(0.95);
+            transform: scale3d(0.95, 0.95, 1);
         }
 
-        /* Scrollbar minimalista */
+        /* ===== Toast ===== */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translate3d(-50%, -120px, 0);
+            background: var(--card);
+            color: var(--text);
+            padding: 14px 24px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 200;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: transform 0.35s var(--ease-spring);
+            white-space: nowrap;
+            will-change: transform;
+        }
+
+        .toast.show {
+            transform: translate3d(-50%, 0, 0);
+        }
+
+        /* ===== Spinner ===== */
+        .spinner {
+            width: 22px;
+            height: 22px;
+            border: 2.5px solid rgba(255,255,255,0.25);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== Install Banner ===== */
+        .install-banner {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: rgba(79, 140, 255, 0.08);
+            border-radius: 14px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            border: 1px solid rgba(79, 140, 255, 0.12);
+            animation: slideUp 0.4s var(--ease-out);
+            font-family: inherit;
+            font-size: inherit;
+            color: inherit;
+            width: 100%;
+            transform: translate3d(0,0,0);
+            transition: transform 0.15s var(--ease-out);
+            touch-action: manipulation;
+        }
+
+        .install-banner.visible {
+            display: flex;
+        }
+
+        .install-banner:active {
+            transform: scale3d(0.97, 0.97, 1);
+        }
+
+        .install-banner .install-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--accent);
+        }
+
+        .install-banner .install-icon {
+            font-size: 18px;
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            text-align: center;
+            padding: 32px 16px 16px;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .footer a:hover,
+        .footer a:focus-visible {
+            text-decoration: underline;
+        }
+
+        .footer p + p {
+            margin-top: 4px;
+        }
+
+        /* ===== Animations ===== */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translate3d(0, 16px, 0); }
+            to   { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translate3d(0, -12px, 0); }
+            to   { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+
+        /* ===== Reduced Motion ===== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001s !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001s !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        /* ===== Print ===== */
+        @media print {
+            body::before,
+            .save-btn,
+            .save-progress,
+            .install-banner,
+            .navigate-btn,
+            .history-clear,
+            .modal-overlay,
+            .confirm-overlay,
+            .toast,
+            .skip-link { display: none !important; }
+
+            body { background: #fff; color: #000; }
+            .card { border: 1px solid #ccc; background: #f9f9f9; }
+            .header h1 { -webkit-text-fill-color: initial; background: none; color: #000; }
+            .footer { color: #666; }
+            .footer a { color: #333; }
+        }
+
+        /* Hide scrollbar (aesthetic) */
         ::-webkit-scrollbar { width: 0; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<!-- Skip to content -->
+<a href="#main" class="skip-link">Vai al contenuto principale</a>
+
+<main id="main" class="container">
     <!-- Header -->
-    <div class="header">
-        <img src="logo.svg" alt="Posizione Parcheggio - Manfredi Lo Cicero" class="logo" width="56" height="56">
+    <header class="header">
+        <img src="logo.svg" alt="" class="logo" width="56" height="56" fetchpriority="high">
         <h1>Posizione Parcheggio</h1>
         <p class="subtitle">di Manfredi Lo Cicero</p>
-    </div>
+    </header>
 
-    <!-- Install Banner -->
-    <div class="install-banner" id="installBanner" onclick="installApp()">
-        <span class="install-icon">📲</span>
+    <!-- Install Banner (PWA) -->
+    <button class="install-banner" id="installBanner" type="button" aria-label="Installa l'app sul dispositivo">
+        <span class="install-icon" aria-hidden="true">📲</span>
         <span class="install-text">Installa l'app</span>
-    </div>
+    </button>
 
     <!-- Save Button -->
-    <button class="save-btn" id="saveBtn" onclick="saveParking()">
-        <span class="icon">📍</span>
+    <button class="save-btn" id="saveBtn" type="button">
+        <span class="icon" aria-hidden="true">📍</span>
         <span class="btn-text">Salva Parcheggio</span>
     </button>
 
-    <!-- Last Parking Card -->
-    <div id="lastParkingCard"></div>
+    <!-- Progress bar -->
+    <div class="save-progress" id="saveProgress">
+        <div class="bar" id="saveBar"></div>
+    </div>
 
-    <!-- History Section -->
-    <div id="historySection"></div>
-</div>
+    <!-- Last Parking Card (dynamic) -->
+    <section id="lastParkingCard" aria-live="polite" aria-label="Ultimo parcheggio"></section>
+
+    <!-- History Section (dynamic) -->
+    <section id="historySection" aria-label="Storico parcheggi"></section>
+</main>
 
 <!-- Maps Modal -->
-<div class="modal-overlay" id="mapsModal" onclick="closeMapsModal(event)">
+<div class="modal-overlay" id="mapsModal" role="dialog" aria-modal="true" aria-labelledby="mapsModalTitle" aria-hidden="true">
     <div class="modal-sheet">
-        <div class="modal-handle"></div>
-        <div class="modal-title">Naviga verso l'auto</div>
-        <div id="mapsOptions"></div>
-        <button class="modal-cancel" onclick="closeMapsModal()">Annulla</button>
+        <div class="modal-handle" aria-hidden="true"></div>
+        <h2 class="modal-title" id="mapsModalTitle">Naviga verso l'auto</h2>
+        <div id="mapsOptions" role="list"></div>
+        <button class="modal-cancel" type="button" id="mapsModalCancel">Annulla</button>
     </div>
 </div>
 
 <!-- Confirm Delete Dialog -->
-<div class="confirm-overlay" id="confirmOverlay" onclick="closeConfirm(event)">
+<div class="confirm-overlay" id="confirmOverlay" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmDesc" aria-hidden="true">
     <div class="confirm-dialog">
-        <h3>Cancella storico</h3>
-        <p>Vuoi eliminare tutto lo storico dei parcheggi?</p>
+        <h3 id="confirmTitle">Cancella storico</h3>
+        <p id="confirmDesc">Vuoi eliminare tutto lo storico dei parcheggi?</p>
         <div class="confirm-btns">
-            <button class="cancel-btn" onclick="closeConfirm()">Annulla</button>
-            <button class="delete-btn" onclick="confirmClear()">Elimina</button>
+            <button class="cancel-btn" type="button" id="confirmCancel">Annulla</button>
+            <button class="delete-btn" type="button" id="confirmDelete">Elimina</button>
         </div>
     </div>
 </div>
 
 <!-- Toast -->
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-<!-- Footer SEO -->
-<footer style="text-align:center; padding:32px 16px 16px; opacity:0.35; font-size:12px; color:#8888a8;">
+<!-- Footer -->
+<footer class="footer">
     <p>Posizione Parcheggio &copy; 2026 Manfredi Lo Cicero</p>
-    <p style="margin-top:4px;"><a href="https://manfredilocicero.it" style="color:#4f8cff; text-decoration:none;">manfredilocicero.it</a></p>
+    <p><a href="https://manfredilocicero.it" rel="noopener noreferrer">manfredilocicero.it</a></p>
 </footer>
 
 <script>
-    // --- Data ---
-    const STORAGE_KEY = 'parkingHistory';
+(function() {
+    'use strict';
 
+    // ===== DOM Cache =====
+    var $saveBtn        = document.getElementById('saveBtn');
+    var $lastParkingCard = document.getElementById('lastParkingCard');
+    var $historySection = document.getElementById('historySection');
+    var $mapsModal      = document.getElementById('mapsModal');
+    var $mapsOptions    = document.getElementById('mapsOptions');
+    var $mapsModalCancel = document.getElementById('mapsModalCancel');
+    var $confirmOverlay = document.getElementById('confirmOverlay');
+    var $confirmCancel  = document.getElementById('confirmCancel');
+    var $confirmDelete  = document.getElementById('confirmDelete');
+    var $toast          = document.getElementById('toast');
+    var $installBanner  = document.getElementById('installBanner');
+    var $saveProgress   = document.getElementById('saveProgress');
+    var $saveBar        = document.getElementById('saveBar');
+
+    // ===== Constants =====
+    var STORAGE_KEY = 'parkingHistory';
+    var MAX_HISTORY = 50;
+
+    // ===== Utilities =====
+
+    /** Escape HTML to prevent XSS */
+    function esc(str) {
+        if (!str) return '';
+        var el = document.createElement('span');
+        el.textContent = String(str);
+        return el.innerHTML;
+    }
+
+    /** Haptic feedback (mobile) */
+    function haptic(ms) {
+        try { if (navigator.vibrate) navigator.vibrate(ms || 10); } catch(e) {}
+    }
+
+    /** Create ripple effect on button */
+    function createRipple(e, btn) {
+        var circle = document.createElement('span');
+        circle.classList.add('ripple');
+        var rect = btn.getBoundingClientRect();
+        var size = Math.max(rect.width, rect.height);
+        circle.style.width = circle.style.height = size + 'px';
+        circle.style.left = (e.clientX || e.touches && e.touches[0] && e.touches[0].clientX || rect.left + rect.width / 2) - rect.left - size / 2 + 'px';
+        circle.style.top = (e.clientY || e.touches && e.touches[0] && e.touches[0].clientY || rect.top + rect.height / 2) - rect.top - size / 2 + 'px';
+        btn.appendChild(circle);
+        setTimeout(function() { circle.remove(); }, 500);
+    }
+
+    /** Safe read parking history */
     function getHistory() {
         try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        } catch { return []; }
+            var data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (!Array.isArray(data)) return [];
+            return data.filter(function(e) {
+                return e && typeof e.lat === 'number' && isFinite(e.lat)
+                    && typeof e.lng === 'number' && isFinite(e.lng)
+                    && typeof e.timestamp === 'string';
+            });
+        } catch(e) { return []; }
     }
 
-    function saveHistory(data) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    /** Persist history */
+    function setHistory(data) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
     }
 
-    // --- Geolocation ---
-    function getCurrentPosition() {
-        return new Promise((resolve, reject) => {
+    /** Update a specific entry in history by id */
+    function updateEntry(id, patch) {
+        var history = getHistory();
+        for (var i = 0; i < history.length; i++) {
+            if (history[i].id === id) {
+                for (var k in patch) {
+                    if (patch.hasOwnProperty(k)) history[i][k] = patch[k];
+                }
+                setHistory(history);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ===== GPS Pre-warming =====
+    // Start watching position on load so the GPS is already active when user taps save
+    var cachedPosition = null;
+    var watchId = null;
+
+    function startGpsWatch() {
+        if (!navigator.geolocation) return;
+        watchId = navigator.geolocation.watchPosition(
+            function(pos) {
+                cachedPosition = {
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                    accuracy: pos.coords.accuracy,
+                    time: Date.now()
+                };
+            },
+            function() { /* silently ignore errors during pre-warm */ },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+        );
+    }
+
+    /** Get position: use cached if fresh (<30s old), otherwise request new */
+    function getPosition() {
+        return new Promise(function(resolve, reject) {
             if (!navigator.geolocation) {
                 reject(new Error('Geolocalizzazione non supportata'));
                 return;
             }
+
+            // If we have a fresh cached position (<30s), use it instantly
+            if (cachedPosition && (Date.now() - cachedPosition.time) < 30000) {
+                resolve({ lat: cachedPosition.lat, lng: cachedPosition.lng, accuracy: cachedPosition.accuracy });
+                return;
+            }
+
+            // Otherwise, get a fresh position with shorter timeout
             navigator.geolocation.getCurrentPosition(
-                pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
-                err => reject(err),
-                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                function(pos) {
+                    var result = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
+                    cachedPosition = { lat: result.lat, lng: result.lng, accuracy: result.accuracy, time: Date.now() };
+                    resolve(result);
+                },
+                reject,
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 15000 }
             );
         });
     }
 
-    // --- Reverse Geocoding (free, no API key) ---
-    async function reverseGeocode(lat, lng) {
-        try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=it`);
-            const data = await res.json();
-            if (data.address) {
-                const a = data.address;
-                const road = a.road || a.pedestrian || a.footway || '';
-                const number = a.house_number || '';
-                const city = a.city || a.town || a.village || a.municipality || '';
-                let parts = [];
-                if (road) parts.push(road + (number ? ' ' + number : ''));
+    // ===== Reverse Geocoding =====
+    function reverseGeocode(lat, lng, timeout) {
+        var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        var tm = timeout || 5000;
+        var tid = controller ? setTimeout(function() { controller.abort(); }, tm) : null;
+
+        var url = 'https://nominatim.openstreetmap.org/reverse?lat=' + encodeURIComponent(lat) +
+            '&lon=' + encodeURIComponent(lng) + '&format=json&accept-language=it&zoom=18';
+
+        var opts = controller ? { signal: controller.signal } : {};
+
+        return fetch(url, opts)
+            .then(function(res) {
+                if (tid) clearTimeout(tid);
+                if (!res.ok) return '';
+                return res.json();
+            })
+            .then(function(data) {
+                if (!data || !data.address) return '';
+                var a = data.address;
+                var road = a.road || a.pedestrian || a.footway || '';
+                var num = a.house_number || '';
+                var city = a.city || a.town || a.village || a.municipality || '';
+                var parts = [];
+                if (road) parts.push(road + (num ? ' ' + num : ''));
                 if (city) parts.push(city);
-                return parts.join(', ') || data.display_name?.split(',').slice(0, 3).join(',') || '';
-            }
-            return '';
-        } catch { return ''; }
+                return parts.join(', ') || (data.display_name ? data.display_name.split(',').slice(0, 3).join(',').trim() : '');
+            })
+            .catch(function() { return ''; });
     }
 
-    // --- Save Parking ---
-    async function saveParking() {
-        const btn = document.getElementById('saveBtn');
-        const btnText = btn.querySelector('.btn-text');
-        const btnIcon = btn.querySelector('.icon');
+    // ===== Save Parking (FAST — non-blocking geocode) =====
+    var isSaving = false;
 
-        // Loading state
-        btnText.textContent = 'Localizzando...';
-        btnIcon.innerHTML = '<div class="spinner"></div>';
-        btn.style.pointerEvents = 'none';
+    function saveParking(e) {
+        if (isSaving) return;
+        isSaving = true;
+        haptic(15);
+        createRipple(e, $saveBtn);
 
-        try {
-            const pos = await getCurrentPosition();
-            const address = await reverseGeocode(pos.lat, pos.lng);
-            const entry = {
-                id: Date.now(),
-                lat: pos.lat,
-                lng: pos.lng,
-                accuracy: Math.round(pos.accuracy),
-                address: address,
-                timestamp: new Date().toISOString()
-            };
+        var btnText = $saveBtn.querySelector('.btn-text');
+        var btnIcon = $saveBtn.querySelector('.icon');
 
-            const history = getHistory();
-            history.unshift(entry);
-            // Keep max 50 entries
-            if (history.length > 50) history.length = 50;
-            saveHistory(history);
+        // Show loading — progress bar
+        btnText.textContent = 'Localizzando…';
+        btnIcon.textContent = '';
+        btnIcon.innerHTML = '<span class="spinner"></span>';
+        $saveBtn.setAttribute('aria-busy', 'true');
+        $saveProgress.classList.add('active');
+        $saveBar.style.width = '30%';
 
-            // Success animation
-            btn.classList.add('saving');
-            btnIcon.innerHTML = '';
-            btnIcon.textContent = '✓';
-            btnText.textContent = 'Salvato!';
+        getPosition()
+            .then(function(pos) {
+                // ★ INSTANT SAVE — don't wait for geocoding!
+                $saveBar.style.width = '80%';
 
-            setTimeout(() => {
-                btn.classList.remove('saving');
+                var entryId = Date.now();
+                var entry = {
+                    id: entryId,
+                    lat: pos.lat,
+                    lng: pos.lng,
+                    accuracy: Math.round(pos.accuracy),
+                    address: '', // will be filled async
+                    timestamp: new Date().toISOString()
+                };
+
+                var history = getHistory();
+                history.unshift(entry);
+                if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
+                setHistory(history);
+
+                // Show success IMMEDIATELY
+                $saveBar.style.width = '100%';
+                haptic([5, 30, 5]);
+
+                $saveBtn.classList.add('saving');
+                btnIcon.innerHTML = '';
+                btnIcon.textContent = '✓';
+                btnText.textContent = 'Salvato!';
+
+                showToast('📍 Posizione salvata');
+                render();
+
+                // === Background geocoding (user already sees "Salvato!") ===
+                reverseGeocode(pos.lat, pos.lng, 6000).then(function(address) {
+                    if (address) {
+                        updateEntry(entryId, { address: address });
+                        // Update UI if the address element exists
+                        var addrEl = document.getElementById('addr-' + entryId);
+                        if (addrEl) {
+                            addrEl.textContent = address;
+                            addrEl.classList.remove('loading');
+                            // Replace the 📍 prefix
+                            addrEl.innerHTML = '<span aria-hidden="true">📍</span> ' + esc(address);
+                        }
+                    }
+                });
+
+                setTimeout(function() {
+                    $saveBtn.classList.remove('saving');
+                    btnIcon.textContent = '📍';
+                    btnText.textContent = 'Salva Parcheggio';
+                    $saveBtn.removeAttribute('aria-busy');
+                    $saveBtn.classList.remove('pulse');
+                    $saveProgress.classList.remove('active');
+                    $saveBar.style.width = '0%';
+                    isSaving = false;
+                }, 1400);
+            })
+            .catch(function(err) {
+                btnIcon.innerHTML = '';
                 btnIcon.textContent = '📍';
                 btnText.textContent = 'Salva Parcheggio';
-                btn.style.pointerEvents = '';
-                btn.classList.remove('pulse');
-            }, 1800);
+                $saveBtn.removeAttribute('aria-busy');
+                $saveProgress.classList.remove('active');
+                $saveBar.style.width = '0%';
+                isSaving = false;
 
-            showToast('📍 Posizione salvata');
-            render();
-
-        } catch (err) {
-            btnIcon.innerHTML = '';
-            btnIcon.textContent = '📍';
-            btnText.textContent = 'Salva Parcheggio';
-            btn.style.pointerEvents = '';
-
-            if (err.code === 1) {
-                showToast('⚠️ Permesso GPS negato');
-            } else if (err.code === 2) {
-                showToast('⚠️ Posizione non disponibile');
-            } else if (err.code === 3) {
-                showToast('⚠️ Timeout GPS');
-            } else {
-                showToast('⚠️ ' + err.message);
-            }
-        }
+                haptic(50);
+                var msgs = { 1: '⚠️ Permesso GPS negato', 2: '⚠️ Posizione non disponibile', 3: '⚠️ Timeout GPS' };
+                showToast(msgs[err.code] || ('⚠️ ' + (err.message || 'Errore sconosciuto')));
+            });
     }
 
-    // --- Time helpers ---
-    function formatTime(iso) {
-        const d = new Date(iso);
-        return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    // ===== Time Helpers =====
+    function fmtTime(iso) {
+        return new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
     }
 
-    function formatDate(iso) {
-        const d = new Date(iso);
-        const today = new Date();
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-
-        if (d.toDateString() === today.toDateString()) return 'Oggi';
-        if (d.toDateString() === yesterday.toDateString()) return 'Ieri';
+    function fmtDate(iso) {
+        var d = new Date(iso);
+        var now = new Date();
+        var y = new Date(); y.setDate(now.getDate() - 1);
+        if (d.toDateString() === now.toDateString()) return 'Oggi';
+        if (d.toDateString() === y.toDateString()) return 'Ieri';
         return d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
     }
 
-    function formatElapsed(iso) {
-        const diff = Date.now() - new Date(iso).getTime();
-        const mins = Math.floor(diff / 60000);
-        if (mins < 1) return 'Adesso';
-        if (mins < 60) return `${mins} min fa`;
-        const hrs = Math.floor(mins / 60);
-        if (hrs < 24) return `${hrs} or${hrs === 1 ? 'a' : 'e'} fa`;
-        const days = Math.floor(hrs / 24);
-        return `${days} giorn${days === 1 ? 'o' : 'i'} fa`;
+    function fmtElapsed(iso) {
+        var diff = Date.now() - new Date(iso).getTime();
+        var m = Math.floor(diff / 60000);
+        if (m < 1) return 'Adesso';
+        if (m < 60) return m + ' min fa';
+        var h = Math.floor(m / 60);
+        if (h < 24) return h + ' or' + (h === 1 ? 'a' : 'e') + ' fa';
+        var d = Math.floor(h / 24);
+        return d + ' giorn' + (d === 1 ? 'o' : 'i') + ' fa';
     }
 
-    function formatDateFull(iso) {
-        return formatDate(iso) + ' alle ' + formatTime(iso);
+    function fmtFull(iso) { return fmtDate(iso) + ' alle ' + fmtTime(iso); }
+
+    function accuracyLabel(m) {
+        if (!m || m <= 0) return '';
+        if (m <= 10) return '± ' + m + 'm · GPS preciso';
+        if (m <= 30) return '± ' + m + 'm · buona precisione';
+        return '± ' + m + 'm';
     }
 
-    // --- Render ---
-    let historyOpen = false;
-    let elapsedInterval;
+    // ===== Render =====
+    var historyOpen = false;
+    var elapsedInterval = null;
 
     function render() {
-        const history = getHistory();
-        const lastCard = document.getElementById('lastParkingCard');
-        const historySection = document.getElementById('historySection');
-        const saveBtn = document.getElementById('saveBtn');
+        var history = getHistory();
 
-        // Pulse if no parking saved
+        $saveBtn.classList.toggle('pulse', history.length === 0);
+
+        // --- Last parking ---
         if (history.length === 0) {
-            saveBtn.classList.add('pulse');
+            $lastParkingCard.innerHTML =
+                '<div class="empty-state">' +
+                    '<span class="empty-icon" aria-hidden="true">🅿️</span>' +
+                    '<p>Salva la posizione della tua auto<br>per ritrovarla facilmente' +
+                    '<span class="hint">Premi il pulsante qui sopra ↑</span></p>' +
+                '</div>';
         } else {
-            saveBtn.classList.remove('pulse');
-        }
+            var p = history[0];
+            var lat6 = Number(p.lat).toFixed(6);
+            var lng6 = Number(p.lng).toFixed(6);
+            var ts = esc(p.timestamp);
+            var addr = esc(p.address);
+            var accClass = (p.accuracy && p.accuracy <= 15) ? ' good' : '';
 
-        // Last parking
-        if (history.length === 0) {
-            lastCard.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">🅿️</div>
-                    <p>Salva la posizione della tua auto<br>per ritrovarla facilmente</p>
-                </div>`;
-        } else {
-            const p = history[0];
-            lastCard.innerHTML = `
-                <div class="card last-parking">
-                    <div class="label">Ultimo parcheggio</div>
-                    <div class="parking-info">
-                        <div>
-                            <div class="parking-time">${formatTime(p.timestamp)}</div>
-                            <div class="parking-date">${formatDate(p.timestamp)}</div>
-                        </div>
-                        ${p.address ? `<div class="parking-address">📍 ${p.address}</div>` : ''}
-                        <div class="parking-elapsed" id="elapsedBadge">🕐 ${formatElapsed(p.timestamp)}</div>
-                        <button class="navigate-btn" onclick="openMapsModal(${p.lat}, ${p.lng})">
-                            <span class="nav-icon">🚶</span>
-                            Indicazioni a piedi
-                        </button>
-                    </div>
-                </div>`;
+            $lastParkingCard.innerHTML =
+                '<div class="card last-parking">' +
+                    '<div class="label">Ultimo parcheggio</div>' +
+                    '<div class="parking-info">' +
+                        '<div>' +
+                            '<div class="parking-time"><time datetime="' + ts + '">' + esc(fmtTime(p.timestamp)) + '</time></div>' +
+                            '<div class="parking-date">' + esc(fmtDate(p.timestamp)) + '</div>' +
+                        '</div>' +
+                        '<div class="parking-address' + (addr ? '' : ' loading') + '" id="addr-' + p.id + '">' +
+                            (addr
+                                ? '<span aria-hidden="true">📍</span> ' + addr
+                                : '<span aria-hidden="true">📍</span> Caricando indirizzo…') +
+                        '</div>' +
+                        (p.accuracy ? '<div class="accuracy-badge' + accClass + '">' + accuracyLabel(p.accuracy) + '</div>' : '') +
+                        '<div class="parking-elapsed" id="elapsedBadge"><span aria-hidden="true">🕐</span> ' + esc(fmtElapsed(p.timestamp)) + '</div>' +
+                        '<button class="navigate-btn" type="button" data-lat="' + lat6 + '" data-lng="' + lng6 + '">' +
+                            '<span class="nav-icon" aria-hidden="true">🚶</span>' +
+                            'Indicazioni a piedi' +
+                        '</button>' +
+                    '</div>' +
+                '</div>';
 
-            // Update elapsed time every minute
-            clearInterval(elapsedInterval);
-            elapsedInterval = setInterval(() => {
-                const badge = document.getElementById('elapsedBadge');
-                if (badge) badge.textContent = '🕐 ' + formatElapsed(p.timestamp);
+            // If address is empty, try to load it now
+            if (!p.address) {
+                reverseGeocode(p.lat, p.lng, 6000).then(function(address) {
+                    if (address) {
+                        updateEntry(p.id, { address: address });
+                        var el = document.getElementById('addr-' + p.id);
+                        if (el) {
+                            el.classList.remove('loading');
+                            el.innerHTML = '<span aria-hidden="true">📍</span> ' + esc(address);
+                        }
+                    } else {
+                        var el2 = document.getElementById('addr-' + p.id);
+                        if (el2) {
+                            el2.classList.remove('loading');
+                            el2.innerHTML = '<span aria-hidden="true">📍</span> ' + lat6 + ', ' + lng6;
+                        }
+                    }
+                });
+            }
+
+            // Elapsed timer
+            if (elapsedInterval) clearInterval(elapsedInterval);
+            elapsedInterval = setInterval(function() {
+                var badge = document.getElementById('elapsedBadge');
+                if (badge) badge.innerHTML = '<span aria-hidden="true">🕐</span> ' + esc(fmtElapsed(p.timestamp));
             }, 60000);
         }
 
-        // History
+        // --- History ---
         if (history.length > 1) {
-            const olderItems = history.slice(1);
-            historySection.innerHTML = `
-                <div class="history-section">
-                    <button class="history-toggle ${historyOpen ? 'open' : ''}" onclick="toggleHistory()">
-                        <span>Storico (${olderItems.length})</span>
-                        <span class="chevron">▼</span>
-                    </button>
-                    <div class="history-list ${historyOpen ? 'open' : ''}" id="historyList">
-                        ${olderItems.map((item, i) => `
-                            <div class="history-item" onclick="openMapsModal(${item.lat}, ${item.lng})" style="animation-delay: ${i * 0.05}s">
-                                <div class="dot"></div>
-                                <div class="h-info">
-                                    <div class="h-date">${formatDateFull(item.timestamp)}</div>
-                                    <div class="h-address">${item.address || `${item.lat.toFixed(5)}, ${item.lng.toFixed(5)}`}</div>
-                                </div>
-                                <span class="h-arrow">›</span>
-                            </div>
-                        `).join('')}
-                        <button class="history-clear" onclick="event.stopPropagation(); askClear()">Cancella storico</button>
-                    </div>
-                </div>`;
+            var older = history.slice(1);
+            var html = '';
+            older.forEach(function(item, i) {
+                var a = item.address ? esc(item.address) : (Number(item.lat).toFixed(5) + ', ' + Number(item.lng).toFixed(5));
+                html +=
+                    '<button class="history-item" type="button" data-lat="' + Number(item.lat).toFixed(6) +
+                        '" data-lng="' + Number(item.lng).toFixed(6) +
+                        '" style="animation-delay:' + Math.min(i * 0.04, 0.6) + 's">' +
+                        '<span class="dot" aria-hidden="true"></span>' +
+                        '<span class="h-info">' +
+                            '<span class="h-date"><time datetime="' + esc(item.timestamp) + '">' + esc(fmtFull(item.timestamp)) + '</time></span>' +
+                            '<span class="h-address">' + a + '</span>' +
+                        '</span>' +
+                        '<span class="h-arrow" aria-hidden="true">›</span>' +
+                    '</button>';
+            });
+
+            $historySection.innerHTML =
+                '<div class="history-section">' +
+                    '<button class="history-toggle" type="button" aria-expanded="' + historyOpen +
+                        '" aria-controls="historyList" id="historyToggle">' +
+                        '<span>Storico (' + older.length + ')</span>' +
+                        '<span class="chevron" aria-hidden="true">▼</span>' +
+                    '</button>' +
+                    '<div class="history-list' + (historyOpen ? ' open' : '') + '" id="historyList" role="region">' +
+                        html +
+                        '<button class="history-clear" type="button" id="historyClear">Cancella storico</button>' +
+                    '</div>' +
+                '</div>';
         } else {
-            historySection.innerHTML = '';
+            $historySection.innerHTML = '';
         }
     }
 
-    function toggleHistory() {
-        historyOpen = !historyOpen;
-        const toggle = document.querySelector('.history-toggle');
-        const list = document.getElementById('historyList');
-        if (toggle) toggle.classList.toggle('open', historyOpen);
-        if (list) list.classList.toggle('open', historyOpen);
+    // ===== Modal Management =====
+    var prevFocus = null;
+
+    function openModal(overlay) {
+        prevFocus = document.activeElement;
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        requestAnimationFrame(function() {
+            var first = overlay.querySelector('button, [tabindex="0"]');
+            if (first) first.focus();
+        });
+    }
+
+    function closeModal(overlay) {
+        overlay.classList.remove('active');
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        if (prevFocus) { prevFocus.focus(); prevFocus = null; }
+    }
+
+    function trapFocus(e, container) {
+        var els = container.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), [tabindex="0"]');
+        if (!els.length) return;
+        var first = els[0], last = els[els.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
 
     // --- Maps Modal ---
-    let pendingLat, pendingLng;
-
     function openMapsModal(lat, lng) {
-        pendingLat = lat;
-        pendingLng = lng;
-        const opts = document.getElementById('mapsOptions');
-
-        const mapsApps = [
-            { name: 'Google Maps', icon: '🗺️', url: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking` },
-            { name: 'Apple Mappe', icon: '🍎', url: `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=w` },
-            { name: 'Waze', icon: '🚙', url: `https://waze.com/ul?ll=${lat},${lng}&navigate=yes` },
+        var apps = [
+            { n: 'Google Maps', i: '🗺️', u: 'https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng + '&travelmode=walking' },
+            { n: 'Apple Mappe', i: '🍎', u: 'https://maps.apple.com/?daddr=' + lat + ',' + lng + '&dirflg=w' },
+            { n: 'Waze',        i: '🚙', u: 'https://waze.com/ul?ll=' + lat + ',' + lng + '&navigate=yes' }
         ];
-
-        opts.innerHTML = mapsApps.map(app => `
-            <button class="map-option" onclick="window.open('${app.url}', '_blank')">
-                <span class="map-icon">${app.icon}</span>
-                ${app.name}
-            </button>
-        `).join('');
-
-        document.getElementById('mapsModal').classList.add('active');
+        $mapsOptions.innerHTML = apps.map(function(a) {
+            return '<button class="map-option" type="button" data-url="' + esc(a.u) + '" role="listitem">' +
+                '<span class="map-icon" aria-hidden="true">' + a.i + '</span><span>' + esc(a.n) + '</span></button>';
+        }).join('');
+        openModal($mapsModal);
     }
 
-    function closeMapsModal(e) {
-        if (e && e.target !== e.currentTarget) return;
-        document.getElementById('mapsModal').classList.remove('active');
-    }
+    function closeMapsModal() { closeModal($mapsModal); }
+    function openConfirmDialog() { openModal($confirmOverlay); }
+    function closeConfirmDialog() { closeModal($confirmOverlay); }
 
-    // --- Confirm Clear ---
-    function askClear() {
-        document.getElementById('confirmOverlay').classList.add('active');
-    }
+    // ===== Toast =====
+    var toastTimer = null;
 
-    function closeConfirm(e) {
-        if (e && e.target !== e.currentTarget) return;
-        document.getElementById('confirmOverlay').classList.remove('active');
-    }
-
-    function confirmClear() {
-        const history = getHistory();
-        // Keep the most recent one
-        if (history.length > 0) {
-            saveHistory([history[0]]);
-        }
-        historyOpen = false;
-        closeConfirm();
-        render();
-        showToast('🗑️ Storico cancellato');
-    }
-
-    // --- Toast ---
     function showToast(msg) {
-        const toast = document.getElementById('toast');
-        toast.textContent = msg;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2500);
+        if (toastTimer) clearTimeout(toastTimer);
+        $toast.textContent = msg;
+        $toast.classList.add('show');
+        toastTimer = setTimeout(function() {
+            $toast.classList.remove('show');
+            toastTimer = null;
+        }, 2200);
     }
 
-    // --- PWA Install ---
-    let deferredPrompt = null;
+    // ===== Event Listeners =====
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById('installBanner').style.display = 'flex';
+    // Save
+    $saveBtn.addEventListener('click', saveParking);
+
+    // Install
+    $installBanner.addEventListener('click', installApp);
+
+    // Navigate btn (delegation)
+    $lastParkingCard.addEventListener('click', function(e) {
+        var btn = e.target.closest('.navigate-btn');
+        if (btn) {
+            haptic(10);
+            var lat = parseFloat(btn.dataset.lat), lng = parseFloat(btn.dataset.lng);
+            if (isFinite(lat) && isFinite(lng)) openMapsModal(lat, lng);
+        }
     });
 
-    async function installApp() {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                document.getElementById('installBanner').style.display = 'none';
+    // History (delegation)
+    $historySection.addEventListener('click', function(e) {
+        var toggle = e.target.closest('.history-toggle');
+        if (toggle) {
+            haptic(5);
+            historyOpen = !historyOpen;
+            toggle.setAttribute('aria-expanded', String(historyOpen));
+            var list = document.getElementById('historyList');
+            if (list) list.classList.toggle('open', historyOpen);
+            return;
+        }
+        var item = e.target.closest('.history-item');
+        if (item) {
+            haptic(10);
+            var lat = parseFloat(item.dataset.lat), lng = parseFloat(item.dataset.lng);
+            if (isFinite(lat) && isFinite(lng)) openMapsModal(lat, lng);
+            return;
+        }
+        if (e.target.closest('.history-clear')) {
+            haptic(10);
+            openConfirmDialog();
+        }
+    });
+
+    // Maps modal
+    $mapsModal.addEventListener('click', function(e) {
+        if (e.target === $mapsModal) { closeMapsModal(); return; }
+        var opt = e.target.closest('.map-option');
+        if (opt && opt.dataset.url) {
+            window.open(opt.dataset.url, '_blank', 'noopener,noreferrer');
+            closeMapsModal();
+        }
+    });
+    $mapsModalCancel.addEventListener('click', closeMapsModal);
+
+    // Confirm dialog
+    $confirmOverlay.addEventListener('click', function(e) {
+        if (e.target === $confirmOverlay) closeConfirmDialog();
+    });
+    $confirmCancel.addEventListener('click', closeConfirmDialog);
+    $confirmDelete.addEventListener('click', function() {
+        haptic([5, 20, 5]);
+        var h = getHistory();
+        if (h.length > 0) setHistory([h[0]]);
+        historyOpen = false;
+        closeConfirmDialog();
+        render();
+        showToast('🗑️ Storico cancellato');
+    });
+
+    // Keyboard
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if ($confirmOverlay.classList.contains('active')) closeConfirmDialog();
+            else if ($mapsModal.classList.contains('active')) closeMapsModal();
+        }
+        if (e.key === 'Tab') {
+            if ($confirmOverlay.classList.contains('active')) trapFocus(e, $confirmOverlay.querySelector('.confirm-dialog'));
+            else if ($mapsModal.classList.contains('active')) trapFocus(e, $mapsModal.querySelector('.modal-sheet'));
+        }
+    });
+
+    // ===== PWA Install =====
+    var deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        $installBanner.classList.add('visible');
+    });
+
+    function installApp() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function(r) {
+            if (r.outcome === 'accepted') {
+                $installBanner.classList.remove('visible');
                 showToast('✅ App installata!');
             }
             deferredPrompt = null;
-        }
+        });
     }
 
-    window.addEventListener('appinstalled', () => {
-        document.getElementById('installBanner').style.display = 'none';
+    window.addEventListener('appinstalled', function() {
+        $installBanner.classList.remove('visible');
         deferredPrompt = null;
     });
 
-    // --- Service Worker Registration ---
+    // ===== Service Worker =====
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
+        navigator.serviceWorker.register('sw.js').catch(function() {});
     }
 
-    // --- Init ---
+    // ===== Init =====
+    startGpsWatch();
     render();
+
+})();
 </script>
 </body>
 </html>
