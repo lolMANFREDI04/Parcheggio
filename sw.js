@@ -1,10 +1,11 @@
 /**
- * Service Worker — Posizione Parcheggio v4
+ * Service Worker — Posizione Parcheggio v5
  * Stale-while-revalidate for app shell, network-only for APIs.
  * Navigation preload enabled for faster page loads.
+ * Push notification support for parking reminders.
  */
 
-var CACHE_NAME = 'parcheggio-v4';
+var CACHE_NAME = 'parcheggio-v5';
 var PRECACHE = [
     './',
     './index.html',
@@ -95,5 +96,38 @@ self.addEventListener('fetch', function(event) {
                 return cached || networkFetch;
             });
         })
+    );
+});
+
+// ===== Message handler — show notification from main thread =====
+self.addEventListener('message', function(event) {
+    var data = event.data;
+    if (data && data.type === 'SHOW_NOTIFICATION') {
+        event.waitUntil(
+            self.registration.showNotification(data.title || 'Parcheggio', {
+                body: data.body || '',
+                icon: 'logo.svg',
+                badge: 'logo.svg',
+                tag: data.tag || 'parking-reminder',
+                requireInteraction: true,
+                vibrate: [100, 50, 100, 50, 100]
+            })
+        );
+    }
+});
+
+// ===== Notification click — open the app =====
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then(function(clients) {
+                for (var i = 0; i < clients.length; i++) {
+                    if (clients[i].url.indexOf(self.registration.scope) !== -1) {
+                        return clients[i].focus();
+                    }
+                }
+                return self.clients.openWindow('./');
+            })
     );
 });

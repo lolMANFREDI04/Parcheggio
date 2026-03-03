@@ -945,13 +945,252 @@
             .modal-overlay,
             .confirm-overlay,
             .toast,
-            .skip-link { display: none !important; }
+            .skip-link,
+            .side-fab,
+            .movements-overlay,
+            .tracking-status { display: none !important; }
 
             body { background: #fff; color: #000; }
             .card { border: 1px solid #ccc; background: #f9f9f9; }
             .header h1 { -webkit-text-fill-color: initial; background: none; color: #000; }
             .footer { color: #666; }
             .footer a { color: #333; }
+        }
+
+        /* ===== Side FAB (Movements) ===== */
+        .side-fab {
+            position: fixed;
+            right: 12px;
+            top: 50%;
+            transform: translate3d(0, -50%, 0);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-dim);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 50;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            transition: transform 0.2s var(--ease-spring), background 0.2s ease, box-shadow 0.2s ease;
+            touch-action: manipulation;
+            font-family: inherit;
+            animation: fadeIn 0.6s var(--ease-out) 0.5s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .side-fab:active {
+            transform: translate3d(0, -50%, 0) scale(0.9);
+        }
+
+        .side-fab.has-data {
+            background: rgba(79, 140, 255, 0.15);
+            border-color: rgba(79, 140, 255, 0.2);
+            color: var(--accent);
+        }
+
+        /* ===== Tracking Status Indicator ===== */
+        .tracking-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 100px;
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: var(--text-dim);
+            animation: slideUp 0.4s var(--ease-out) 0.2s both;
+        }
+
+        .tracking-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .tracking-dot.idle { background: var(--text-dim); opacity: 0.4; }
+        .tracking-dot.walking { background: var(--success); animation: dotPulse 1.5s ease-in-out infinite; }
+        .tracking-dot.driving { background: var(--accent); animation: dotPulse 0.8s ease-in-out infinite; }
+        .tracking-dot.stopped { background: #f59e0b; }
+
+        @keyframes dotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* ===== Movements Panel (right side drawer) ===== */
+        .movements-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 90;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .movements-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .movements-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: min(340px, 85vw);
+            background: var(--bg);
+            z-index: 91;
+            transform: translate3d(100%, 0, 0);
+            transition: transform 0.35s var(--ease-out);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .movements-panel.active {
+            transform: translate3d(0, 0, 0);
+        }
+
+        .movements-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            flex-shrink: 0;
+        }
+
+        .movements-header h2 {
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .movements-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--card);
+            border: none;
+            color: var(--text-dim);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: inherit;
+            touch-action: manipulation;
+        }
+
+        .movements-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .mv-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: var(--card);
+            border-radius: 14px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255,255,255,0.03);
+            animation: itemSlide 0.3s var(--ease-out) both;
+        }
+
+        .mv-icon {
+            font-size: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .mv-icon.drive { background: rgba(79, 140, 255, 0.1); }
+        .mv-icon.walk  { background: rgba(52, 211, 153, 0.1); }
+        .mv-icon.park  { background: rgba(245, 158, 11, 0.1); }
+        .mv-icon.stop  { background: rgba(255, 107, 107, 0.1); }
+
+        .mv-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .mv-details .mv-label {
+            font-size: 14px;
+            font-weight: 600;
+            display: block;
+        }
+
+        .mv-details .mv-sub {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 2px;
+            display: block;
+        }
+
+        .mv-details .mv-time {
+            font-size: 11px;
+            color: var(--text-dim);
+            opacity: 0.7;
+            margin-top: 3px;
+            display: block;
+        }
+
+        .mv-empty {
+            text-align: center;
+            padding: 40px 16px;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .mv-clear {
+            display: block;
+            margin: 8px auto 16px;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 100px;
+            background: rgba(255, 107, 107, 0.08);
+            color: var(--danger);
+            font-size: 12px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        /* ===== Auto-park badge ===== */
+        .auto-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            padding: 3px 10px;
+            border-radius: 100px;
+            font-weight: 500;
+            margin-top: 4px;
         }
 
         /* Hide scrollbar (aesthetic) */
@@ -976,6 +1215,12 @@
         <span class="install-icon" aria-hidden="true">📲</span>
         <span class="install-text">Installa l'app</span>
     </button>
+
+    <!-- Tracking Status -->
+    <div class="tracking-status" id="trackingStatus">
+        <span class="tracking-dot idle" id="trackingDot"></span>
+        <span id="trackingLabel">Rilevamento in attesa…</span>
+    </div>
 
     <!-- Save Button -->
     <button class="save-btn" id="saveBtn" type="button">
@@ -1019,6 +1264,22 @@
 
 <!-- Toast -->
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Side FAB: Movement History -->
+<button class="side-fab" id="movementsFab" type="button" aria-label="Visualizza spostamenti">
+    🛣️
+</button>
+
+<!-- Movements Panel -->
+<div class="movements-overlay" id="movementsOverlay" aria-hidden="true">
+    <div class="movements-panel" id="movementsPanel" role="dialog" aria-modal="true" aria-labelledby="movementsTitle">
+        <div class="movements-header">
+            <h2 id="movementsTitle">🛣️ Spostamenti</h2>
+            <button class="movements-close" id="movementsClose" type="button" aria-label="Chiudi">✕</button>
+        </div>
+        <div class="movements-body" id="movementsBody"></div>
+    </div>
+</div>
 
 <!-- Footer -->
 <footer class="footer">
@@ -1110,26 +1371,9 @@
         return false;
     }
 
-    // ===== GPS Pre-warming =====
-    // Start watching position on load so the GPS is already active when user taps save
+    // ===== GPS =====
     var cachedPosition = null;
     var watchId = null;
-
-    function startGpsWatch() {
-        if (!navigator.geolocation) return;
-        watchId = navigator.geolocation.watchPosition(
-            function(pos) {
-                cachedPosition = {
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude,
-                    accuracy: pos.coords.accuracy,
-                    time: Date.now()
-                };
-            },
-            function() { /* silently ignore errors during pre-warm */ },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
-        );
-    }
 
     /** Get position: use cached if fresh (<30s old), otherwise request new */
     function getPosition() {
@@ -1189,98 +1433,8 @@
             .catch(function() { return ''; });
     }
 
-    // ===== Save Parking (FAST — non-blocking geocode) =====
+    // ===== Save Parking =====
     var isSaving = false;
-
-    function saveParking(e) {
-        if (isSaving) return;
-        isSaving = true;
-        haptic(15);
-        createRipple(e, $saveBtn);
-
-        var btnText = $saveBtn.querySelector('.btn-text');
-        var btnIcon = $saveBtn.querySelector('.icon');
-
-        // Show loading — progress bar
-        btnText.textContent = 'Localizzando…';
-        btnIcon.textContent = '';
-        btnIcon.innerHTML = '<span class="spinner"></span>';
-        $saveBtn.setAttribute('aria-busy', 'true');
-        $saveProgress.classList.add('active');
-        $saveBar.style.width = '30%';
-
-        getPosition()
-            .then(function(pos) {
-                // ★ INSTANT SAVE — don't wait for geocoding!
-                $saveBar.style.width = '80%';
-
-                var entryId = Date.now();
-                var entry = {
-                    id: entryId,
-                    lat: pos.lat,
-                    lng: pos.lng,
-                    accuracy: Math.round(pos.accuracy),
-                    address: '', // will be filled async
-                    timestamp: new Date().toISOString()
-                };
-
-                var history = getHistory();
-                history.unshift(entry);
-                if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
-                setHistory(history);
-
-                // Show success IMMEDIATELY
-                $saveBar.style.width = '100%';
-                haptic([5, 30, 5]);
-
-                $saveBtn.classList.add('saving');
-                btnIcon.innerHTML = '';
-                btnIcon.textContent = '✓';
-                btnText.textContent = 'Salvato!';
-
-                showToast('📍 Posizione salvata');
-                render();
-
-                // === Background geocoding (user already sees "Salvato!") ===
-                reverseGeocode(pos.lat, pos.lng, 6000).then(function(address) {
-                    if (address) {
-                        updateEntry(entryId, { address: address });
-                        // Update UI if the address element exists
-                        var addrEl = document.getElementById('addr-' + entryId);
-                        if (addrEl) {
-                            addrEl.textContent = address;
-                            addrEl.classList.remove('loading');
-                            // Replace the 📍 prefix
-                            addrEl.innerHTML = '<span aria-hidden="true">📍</span> ' + esc(address);
-                        }
-                    }
-                });
-
-                setTimeout(function() {
-                    $saveBtn.classList.remove('saving');
-                    btnIcon.textContent = '📍';
-                    btnText.textContent = 'Salva Parcheggio';
-                    $saveBtn.removeAttribute('aria-busy');
-                    $saveBtn.classList.remove('pulse');
-                    $saveProgress.classList.remove('active');
-                    $saveBar.style.width = '0%';
-                    isSaving = false;
-                }, 1400);
-            })
-            .catch(function(err) {
-                btnIcon.innerHTML = '';
-                btnIcon.textContent = '📍';
-                btnText.textContent = 'Salva Parcheggio';
-                $saveBtn.removeAttribute('aria-busy');
-                $saveProgress.classList.remove('active');
-                $saveBar.style.width = '0%';
-                isSaving = false;
-
-                haptic(50);
-                var msgs = { 1: '⚠️ Permesso GPS negato', 2: '⚠️ Posizione non disponibile', 3: '⚠️ Timeout GPS' };
-                showToast(msgs[err.code] || ('⚠️ ' + (err.message || 'Errore sconosciuto')));
-            });
-    }
 
     // ===== Time Helpers =====
     function fmtTime(iso) {
@@ -1355,6 +1509,7 @@
                                 : '<span aria-hidden="true">📍</span> Caricando indirizzo…') +
                         '</div>' +
                         (p.accuracy ? '<div class="accuracy-badge' + accClass + '">' + accuracyLabel(p.accuracy) + '</div>' : '') +
+                        (p.auto ? '<div class="auto-badge"><span aria-hidden="true">🤖</span> Rilevato automaticamente</div>' : '') +
                         '<div class="parking-elapsed" id="elapsedBadge"><span aria-hidden="true">🕐</span> ' + esc(fmtElapsed(p.timestamp)) + '</div>' +
                         '<button class="navigate-btn" type="button" data-lat="' + lat6 + '" data-lng="' + lng6 + '">' +
                             '<span class="nav-icon" aria-hidden="true">🚶</span>' +
@@ -1403,7 +1558,9 @@
                         '" style="animation-delay:' + Math.min(i * 0.04, 0.6) + 's">' +
                         '<span class="dot" aria-hidden="true"></span>' +
                         '<span class="h-info">' +
-                            '<span class="h-date"><time datetime="' + esc(item.timestamp) + '">' + esc(fmtFull(item.timestamp)) + '</time></span>' +
+                            '<span class="h-date"><time datetime="' + esc(item.timestamp) + '">' + esc(fmtFull(item.timestamp)) + '</time>' +
+                            (item.auto ? ' <span class="auto-badge" style="font-size:10px;padding:2px 6px;">🤖 Auto</span>' : '') +
+                            '</span>' +
                             '<span class="h-address">' + a + '</span>' +
                         '</span>' +
                         '<span class="h-arrow" aria-hidden="true">›</span>' +
@@ -1488,9 +1645,6 @@
     }
 
     // ===== Event Listeners =====
-
-    // Save
-    $saveBtn.addEventListener('click', saveParking);
 
     // Install
     $installBanner.addEventListener('click', installApp);
@@ -1593,14 +1747,530 @@
         deferredPrompt = null;
     });
 
+    // ===== Push Notifications =====
+    var NOTIF_KEY = 'parkingNotifState'; // { parkId, lat, lng, scheduledAt, dismissed }
+    var REMIND_DELAY = 3 * 60 * 60 * 1000; // 3 hours
+    var NEARBY_THRESHOLD = 80; // meters — if user passes within 80m, cancel notification
+
+    /** Request Notification permission */
+    function requestNotifPermission() {
+        if (!('Notification' in window)) return;
+        if (Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }
+
+    /** Schedule a parking reminder 3h from now.
+     *  Always schedule — permission is checked at fire time, not now.
+     *  This avoids the race condition when permission is being requested. */
+    function scheduleReminder(entry) {
+        if (!('Notification' in window)) return;
+        var state = {
+            parkId: entry.id,
+            lat: entry.lat,
+            lng: entry.lng,
+            scheduledAt: Date.now() + REMIND_DELAY,
+            dismissed: false
+        };
+        try { localStorage.setItem(NOTIF_KEY, JSON.stringify(state)); } catch(e) {}
+    }
+
+    /** Cancel reminder (user passed nearby or retrieved car) */
+    function cancelReminder() {
+        try { localStorage.removeItem(NOTIF_KEY); } catch(e) {}
+    }
+
+    /** Check if user is near their parked car — if so, cancel reminder */
+    function checkProximityForReminder(currentLat, currentLng) {
+        try {
+            var raw = localStorage.getItem(NOTIF_KEY);
+            if (!raw) return;
+            var state = JSON.parse(raw);
+            if (state.dismissed) return;
+            var dist = haversine(currentLat, currentLng, state.lat, state.lng);
+            if (dist < NEARBY_THRESHOLD) {
+                // User passed near their car — cancel the reminder
+                cancelReminder();
+            }
+        } catch(e) {}
+    }
+
+    /** Check if it's time to fire the reminder notification */
+    function checkReminderTimer() {
+        try {
+            var raw = localStorage.getItem(NOTIF_KEY);
+            if (!raw) return;
+            var state = JSON.parse(raw);
+            if (state.dismissed) return;
+            if (Date.now() >= state.scheduledAt) {
+                fireReminderNotification(state);
+                state.dismissed = true;
+                localStorage.setItem(NOTIF_KEY, JSON.stringify(state));
+            }
+        } catch(e) {}
+    }
+
+    /** Actually fire the notification */
+    function fireReminderNotification(state) {
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+        var history = getHistory();
+        var entry = null;
+        for (var i = 0; i < history.length; i++) {
+            if (history[i].id === state.parkId) { entry = history[i]; break; }
+        }
+        var body = entry && entry.address
+            ? 'La tua auto è parcheggiata in: ' + entry.address
+            : 'Non dimenticare dove hai parcheggiato!';
+
+        try {
+            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'SHOW_NOTIFICATION',
+                    title: '🚗 Ricordi dove hai parcheggiato?',
+                    body: body,
+                    tag: 'parking-reminder'
+                });
+            } else {
+                new Notification('🚗 Ricordi dove hai parcheggiato?', {
+                    body: body,
+                    icon: 'logo.svg',
+                    tag: 'parking-reminder',
+                    requireInteraction: true
+                });
+            }
+        } catch(e) {
+            // Fallback
+            new Notification('🚗 Ricordi dove hai parcheggiato?', {
+                body: body,
+                icon: 'logo.svg',
+                tag: 'parking-reminder'
+            });
+        }
+    }
+
+    // Check reminder every 60s
+    setInterval(checkReminderTimer, 60000);
+    checkReminderTimer(); // check on load too
+
+    // ===== Haversine Distance (meters) =====
+    function haversine(lat1, lon1, lat2, lon2) {
+        var R = 6371000;
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    // ===== Auto-Parking Detection (Speed Analysis) =====
+    var MOVEMENTS_KEY = 'movementLog';
+    var DRIVE_SPEED = 3.5;   // m/s (~12.6 km/h) — above = driving
+    var WALK_SPEED = 1.0;    // m/s (~3.6 km/h) — below = walking/stopped
+    var STOP_DURATION = 60000; // 60s of being slow after driving = parked
+
+    var motionState = 'idle'; // idle | walking | driving | stopped
+    var lastDrivingPos = null; // last position where speed was 'driving'
+    var stoppedSince = 0;      // timestamp when we first detected low speed after driving
+    var wasDriving = false;    // did we detect driving in this session?
+    var prevTrackPos = null;   // previous position for speed calculation
+    var prevTrackTime = 0;
+    var autoSavedId = null;    // id of auto-saved parking, to avoid duplicates
+
+    var $trackingDot = document.getElementById('trackingDot');
+    var $trackingLabel = document.getElementById('trackingLabel');
+
+    function getMovements() {
+        try {
+            var d = JSON.parse(localStorage.getItem(MOVEMENTS_KEY));
+            return Array.isArray(d) ? d : [];
+        } catch(e) { return []; }
+    }
+
+    function setMovements(data) {
+        try {
+            // Keep max 100 entries
+            if (data.length > 100) data.length = 100;
+            localStorage.setItem(MOVEMENTS_KEY, JSON.stringify(data));
+        } catch(e) {}
+    }
+
+    function addMovement(type, lat, lng, speed, extra) {
+        var mv = getMovements();
+        mv.unshift({
+            type: type,
+            lat: lat,
+            lng: lng,
+            speed: Math.round(speed * 10) / 10,
+            time: new Date().toISOString(),
+            extra: extra || ''
+        });
+        setMovements(mv);
+    }
+
+    function updateTrackingUI(state, label) {
+        motionState = state;
+        if ($trackingDot) {
+            $trackingDot.className = 'tracking-dot ' + state;
+        }
+        if ($trackingLabel) {
+            $trackingLabel.textContent = label;
+        }
+    }
+
+    /** Main tracking callback — called every time GPS updates */
+    function onTrackPosition(pos) {
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+        var acc = pos.coords.accuracy;
+        var now = Date.now();
+
+        // Update cached position (used by save button)
+        cachedPosition = { lat: lat, lng: lng, accuracy: acc, time: now };
+
+        // Check proximity to parked car (for notification cancellation)
+        checkProximityForReminder(lat, lng);
+
+        // Need previous position to calculate speed
+        if (!prevTrackPos) {
+            prevTrackPos = { lat: lat, lng: lng };
+            prevTrackTime = now;
+            return;
+        }
+
+        // Skip poor accuracy readings without resetting baseline
+        if (acc > 50) return;
+
+        var dt = (now - prevTrackTime) / 1000; // seconds
+        if (dt < 3) return; // too frequent, skip
+
+        var dist = haversine(prevTrackPos.lat, prevTrackPos.lng, lat, lng);
+        var speed = dist / dt; // m/s
+
+        prevTrackPos = { lat: lat, lng: lng };
+        prevTrackTime = now;
+
+        // Ignore unrealistic speeds (GPS jumps)
+        if (speed > 60) return; // >216 km/h, GPS error
+
+        var speedKmh = Math.round(speed * 3.6);
+
+        // === State Machine ===
+        if (speed >= DRIVE_SPEED) {
+            // DRIVING
+            if (motionState !== 'driving') {
+                addMovement('drive', lat, lng, speed, speedKmh + ' km/h');
+            }
+            updateTrackingUI('driving', '🚗 In auto · ' + speedKmh + ' km/h');
+            lastDrivingPos = { lat: lat, lng: lng, time: now };
+            wasDriving = true;
+            stoppedSince = 0;
+            autoSavedId = null; // reset
+
+        } else if (speed <= WALK_SPEED && wasDriving) {
+            // STOPPED/WALKING after driving
+            if (stoppedSince === 0) {
+                stoppedSince = now;
+                updateTrackingUI('stopped', '⏸ Fermo…');
+            }
+
+            var stoppedFor = now - stoppedSince;
+
+            if (stoppedFor >= STOP_DURATION && lastDrivingPos && !autoSavedId) {
+                // === AUTO-PARK DETECTED ===
+                updateTrackingUI('walking', '🚶 A piedi · parcheggio rilevato');
+                autoSaveParking(lastDrivingPos.lat, lastDrivingPos.lng);
+                addMovement('park', lastDrivingPos.lat, lastDrivingPos.lng, 0, 'Parcheggio automatico');
+                wasDriving = false;
+                stoppedSince = 0;
+            } else {
+                updateTrackingUI('stopped', '⏸ Fermo da ' + Math.floor(stoppedFor / 1000) + 's…');
+            }
+
+        } else if (speed > WALK_SPEED && speed < DRIVE_SPEED) {
+            // Walking speed
+            if (wasDriving && stoppedSince > 0) {
+                var stoppedFor2 = now - stoppedSince;
+                if (stoppedFor2 >= STOP_DURATION && lastDrivingPos && !autoSavedId) {
+                    // Walking away from car
+                    updateTrackingUI('walking', '🚶 A piedi · parcheggio rilevato');
+                    autoSaveParking(lastDrivingPos.lat, lastDrivingPos.lng);
+                    addMovement('park', lastDrivingPos.lat, lastDrivingPos.lng, 0, 'Parcheggio automatico');
+                    wasDriving = false;
+                    stoppedSince = 0;
+                }
+            }
+            updateTrackingUI('walking', '🚶 A piedi · ' + speedKmh + ' km/h');
+            if (!wasDriving) {
+                stoppedSince = 0;
+            }
+        } else {
+            updateTrackingUI('idle', 'Rilevamento attivo');
+        }
+    }
+
+    /** Auto-save a parking position detected from speed analysis */
+    function autoSaveParking(lat, lng) {
+        var entryId = Date.now();
+        autoSavedId = entryId;
+        var entry = {
+            id: entryId,
+            lat: lat,
+            lng: lng,
+            accuracy: 0,
+            address: '',
+            timestamp: new Date().toISOString(),
+            auto: true // flag: auto-detected
+        };
+
+        var history = getHistory();
+        history.unshift(entry);
+        if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
+        setHistory(history);
+
+        // Request notification permission & schedule reminder
+        requestNotifPermission();
+        scheduleReminder(entry);
+
+        showToast('🚗 Parcheggio rilevato automaticamente!');
+        haptic([10, 30, 10, 30, 10]);
+        render();
+
+        // Background geocoding
+        reverseGeocode(lat, lng, 6000).then(function(address) {
+            if (address) {
+                updateEntry(entryId, { address: address });
+                var el = document.getElementById('addr-' + entryId);
+                if (el) {
+                    el.classList.remove('loading');
+                    el.innerHTML = '<span aria-hidden="true">📍</span> ' + esc(address);
+                }
+            }
+        });
+    }
+
+    // ===== Movement History Panel =====
+    var $movementsFab = document.getElementById('movementsFab');
+    var $movementsOverlay = document.getElementById('movementsOverlay');
+    var $movementsPanel = document.getElementById('movementsPanel');
+    var $movementsBody = document.getElementById('movementsBody');
+    var $movementsClose = document.getElementById('movementsClose');
+
+    function openMovements() {
+        renderMovements();
+        $movementsOverlay.classList.add('active');
+        $movementsPanel.classList.add('active');
+        $movementsOverlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMovements() {
+        $movementsOverlay.classList.remove('active');
+        $movementsPanel.classList.remove('active');
+        $movementsOverlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    function renderMovements() {
+        var mvs = getMovements();
+        $movementsFab.classList.toggle('has-data', mvs.length > 0);
+
+        if (mvs.length === 0) {
+            $movementsBody.innerHTML = '<div class="mv-empty"><p>🛣️ Nessuno spostamento registrato</p><p style="margin-top:8px;font-size:12px;">Gli spostamenti appariranno qui quando rileveremo guida e camminate.</p></div>';
+            return;
+        }
+
+        var html = '';
+        mvs.forEach(function(mv, i) {
+            var icon, iconClass, label;
+            switch(mv.type) {
+                case 'drive':
+                    icon = '🚗'; iconClass = 'drive'; label = 'In auto';
+                    break;
+                case 'walk':
+                    icon = '🚶'; iconClass = 'walk'; label = 'A piedi';
+                    break;
+                case 'park':
+                    icon = '🅿️'; iconClass = 'park'; label = 'Parcheggio rilevato';
+                    break;
+                case 'stop':
+                    icon = '⏸'; iconClass = 'stop'; label = 'Fermata';
+                    break;
+                default:
+                    icon = '📍'; iconClass = 'stop'; label = mv.type;
+            }
+
+            html += '<div class="mv-item" style="animation-delay:' + Math.min(i * 0.03, 0.5) + 's">' +
+                '<div class="mv-icon ' + iconClass + '">' + icon + '</div>' +
+                '<div class="mv-details">' +
+                    '<span class="mv-label">' + esc(label) + '</span>' +
+                    (mv.extra ? '<span class="mv-sub">' + esc(mv.extra) + '</span>' : '') +
+                    '<span class="mv-time">' + esc(fmtFull(mv.time)) + '</span>' +
+                '</div>' +
+            '</div>';
+        });
+
+        html += '<button class="mv-clear" type="button" id="mvClear">Cancella spostamenti</button>';
+        $movementsBody.innerHTML = html;
+    }
+
+    // Events for movements panel
+    $movementsFab.addEventListener('click', function() {
+        haptic(5);
+        openMovements();
+    });
+
+    $movementsClose.addEventListener('click', closeMovements);
+
+    $movementsOverlay.addEventListener('click', function(e) {
+        if (e.target === $movementsOverlay) closeMovements();
+    });
+
+    $movementsBody.addEventListener('click', function(e) {
+        if (e.target.closest('.mv-clear')) {
+            setMovements([]);
+            renderMovements();
+            showToast('🗑️ Spostamenti cancellati');
+        }
+    });
+
+    // Keyboard
+    document.addEventListener('keydown', function handleMovementsKey(e) {
+        if (e.key === 'Escape' && $movementsPanel.classList.contains('active')) {
+            closeMovements();
+        }
+    });
+
+    // ===== Enhanced GPS Watcher (replaces simple startGpsWatch) =====
+    function startTracking() {
+        if (!navigator.geolocation) {
+            updateTrackingUI('idle', 'GPS non disponibile');
+            return;
+        }
+
+        // Stop old watcher if running
+        if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+
+        watchId = navigator.geolocation.watchPosition(
+            onTrackPosition,
+            function(err) {
+                if (err.code === 1) updateTrackingUI('idle', '⚠️ Permesso GPS negato');
+                else updateTrackingUI('idle', 'GPS in attesa…');
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+        );
+
+        updateTrackingUI('idle', 'Rilevamento attivo');
+    }
+
+    // ===== Save Parking with Reminder =====
+    function saveParkingWithReminder(e) {
+        if (isSaving) return;
+        isSaving = true;
+        haptic(15);
+        createRipple(e, $saveBtn);
+
+        var btnText = $saveBtn.querySelector('.btn-text');
+        var btnIcon = $saveBtn.querySelector('.icon');
+
+        btnText.textContent = 'Localizzando…';
+        btnIcon.textContent = '';
+        btnIcon.innerHTML = '<span class="spinner"></span>';
+        $saveBtn.setAttribute('aria-busy', 'true');
+        $saveProgress.classList.add('active');
+        $saveBar.style.width = '30%';
+
+        getPosition()
+            .then(function(pos) {
+                $saveBar.style.width = '80%';
+
+                var entryId = Date.now();
+                var entry = {
+                    id: entryId,
+                    lat: pos.lat,
+                    lng: pos.lng,
+                    accuracy: Math.round(pos.accuracy),
+                    address: '',
+                    timestamp: new Date().toISOString(),
+                    auto: false
+                };
+
+                var history = getHistory();
+                history.unshift(entry);
+                if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
+                setHistory(history);
+
+                $saveBar.style.width = '100%';
+                haptic([5, 30, 5]);
+
+                $saveBtn.classList.add('saving');
+                btnIcon.innerHTML = '';
+                btnIcon.textContent = '✓';
+                btnText.textContent = 'Salvato!';
+
+                showToast('📍 Posizione salvata');
+                render();
+
+                // Request notification permission (first time)
+                requestNotifPermission();
+
+                // Schedule 3h reminder
+                scheduleReminder(entry);
+
+                // Background geocoding
+                reverseGeocode(pos.lat, pos.lng, 6000).then(function(address) {
+                    if (address) {
+                        updateEntry(entryId, { address: address });
+                        var addrEl = document.getElementById('addr-' + entryId);
+                        if (addrEl) {
+                            addrEl.classList.remove('loading');
+                            addrEl.innerHTML = '<span aria-hidden="true">📍</span> ' + esc(address);
+                        }
+                    }
+                });
+
+                // Reset auto-detection state
+                wasDriving = false;
+                stoppedSince = 0;
+                autoSavedId = null;
+
+                setTimeout(function() {
+                    $saveBtn.classList.remove('saving');
+                    btnIcon.textContent = '📍';
+                    btnText.textContent = 'Salva Parcheggio';
+                    $saveBtn.removeAttribute('aria-busy');
+                    $saveBtn.classList.remove('pulse');
+                    $saveProgress.classList.remove('active');
+                    $saveBar.style.width = '0%';
+                    isSaving = false;
+                }, 1400);
+            })
+            .catch(function(err) {
+                btnIcon.innerHTML = '';
+                btnIcon.textContent = '📍';
+                btnText.textContent = 'Salva Parcheggio';
+                $saveBtn.removeAttribute('aria-busy');
+                $saveProgress.classList.remove('active');
+                $saveBar.style.width = '0%';
+                isSaving = false;
+
+                haptic(50);
+                var msgs = { 1: '⚠️ Permesso GPS negato', 2: '⚠️ Posizione non disponibile', 3: '⚠️ Timeout GPS' };
+                showToast(msgs[err.code] || ('⚠️ ' + (err.message || 'Errore sconosciuto')));
+            });
+    }
+
+    $saveBtn.addEventListener('click', saveParkingWithReminder);
+
     // ===== Service Worker =====
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(function() {});
     }
 
     // ===== Init =====
-    startGpsWatch();
+    startTracking(); // enhanced tracker (replaces startGpsWatch)
     render();
+    renderMovements(); // update FAB state
 
 })();
 </script>
