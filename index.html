@@ -1019,10 +1019,15 @@
             flex-shrink: 0;
         }
 
-        .tracking-dot.idle { background: var(--text-dim); opacity: 0.4; }
+        .tracking-dot.idle { background: var(--accent); opacity: 0.7; animation: dotBreathe 2.5s ease-in-out infinite; }
         .tracking-dot.walking { background: var(--success); animation: dotPulse 1.5s ease-in-out infinite; }
         .tracking-dot.driving { background: var(--accent); animation: dotPulse 0.8s ease-in-out infinite; }
-        .tracking-dot.stopped { background: #f59e0b; }
+        .tracking-dot.stopped { background: #f59e0b; animation: dotPulse 1.2s ease-in-out infinite; }
+
+        @keyframes dotBreathe {
+            0%, 100% { opacity: 0.4; transform: scale(0.85); }
+            50% { opacity: 0.9; transform: scale(1.1); }
+        }
 
         @keyframes dotPulse {
             0%, 100% { opacity: 1; transform: scale(1); }
@@ -1219,7 +1224,7 @@
     <!-- Tracking Status -->
     <div class="tracking-status" id="trackingStatus">
         <span class="tracking-dot idle" id="trackingDot"></span>
-        <span id="trackingLabel">Rilevamento in attesa…</span>
+        <span id="trackingLabel">📡 Avvio GPS…</span>
     </div>
 
     <!-- Save Button -->
@@ -1760,24 +1765,62 @@
         }
     }
 
-    /** Schedule a parking reminder 3h from now.
-     *  Always schedule — permission is checked at fire time, not now.
-     *  This avoids the race condition when permission is being requested. */
+    /** Send reminder state to Service Worker via Cache API so it works even when app is closed */
+    function syncReminderToSW(state) {
+        try {
+            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ type: 'SET_REMINDER', state: state });
+            }
+        } catch(e) {}
+    }
+
+    function clearReminderInSW() {
+        try {
+            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_REMINDER' });
+            }
+        } catch(e) {}
+    }
+
+    function askSWToCheck() {
+        try {
+            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ type: 'CHECK_REMINDER' });
+            }
+        } catch(e) {}
+    }
+
+    /** Register Periodic Background Sync (Android Chrome) — SW wakes every ~1h to check */
+    function registerPeriodicSync() {
+        if (!('serviceWorker' in navigator)) return;
+        navigator.serviceWorker.ready.then(function(reg) {
+            if (!reg.periodicSync) return;
+            return reg.periodicSync.register('check-parking-reminder', {
+                minInterval: 60 * 60 * 1000
+            });
+        }).catch(function() {});
+    }
+
+    /** Schedule a parking reminder 3h from now */
     function scheduleReminder(entry) {
         if (!('Notification' in window)) return;
         var state = {
             parkId: entry.id,
             lat: entry.lat,
             lng: entry.lng,
+            address: entry.address || '',
             scheduledAt: Date.now() + REMIND_DELAY,
             dismissed: false
         };
         try { localStorage.setItem(NOTIF_KEY, JSON.stringify(state)); } catch(e) {}
+        syncReminderToSW(state);
+        registerPeriodicSync();
     }
 
     /** Cancel reminder (user passed nearby or retrieved car) */
     function cancelReminder() {
         try { localStorage.removeItem(NOTIF_KEY); } catch(e) {}
+        clearReminderInSW();
     }
 
     /** Check if user is near their parked car — if so, cancel reminder */
@@ -1806,6 +1849,7 @@
                 fireReminderNotification(state);
                 state.dismissed = true;
                 localStorage.setItem(NOTIF_KEY, JSON.stringify(state));
+                syncReminderToSW(state); // keep SW in sync
             }
         } catch(e) {}
     }
@@ -1848,9 +1892,17 @@
         }
     }
 
-    // Check reminder every 60s
+    // Check reminder every 60s while app is open
     setInterval(checkReminderTimer, 60000);
-    checkReminderTimer(); // check on load too
+    checkReminderTimer();
+
+    // When app comes back to foreground, re-check & tell SW to check too
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+            checkReminderTimer();
+            askSWToCheck();
+        }
+    });
 
     // ===== Haversine Distance (meters) =====
     function haversine(lat1, lon1, lat2, lon2) {
@@ -2005,7 +2057,7 @@
                 stoppedSince = 0;
             }
         } else {
-            updateTrackingUI('idle', 'Rilevamento attivo');
+            updateTrackingUI('idle', '📡 GPS attivo · in ascolto');
         }
     }
 
@@ -2144,7 +2196,7 @@
     // ===== Enhanced GPS Watcher (replaces simple startGpsWatch) =====
     function startTracking() {
         if (!navigator.geolocation) {
-            updateTrackingUI('idle', 'GPS non disponibile');
+            updateTrackingUI('idle', '⚠️ GPS non disponibile');
             return;
         }
 
@@ -2155,12 +2207,12 @@
             onTrackPosition,
             function(err) {
                 if (err.code === 1) updateTrackingUI('idle', '⚠️ Permesso GPS negato');
-                else updateTrackingUI('idle', 'GPS in attesa…');
+                else updateTrackingUI('idle', '📡 GPS in attesa…');
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
         );
 
-        updateTrackingUI('idle', 'Rilevamento attivo');
+        updateTrackingUI('idle', '📡 GPS attivo · in ascolto');
     }
 
     // ===== Save Parking with Reminder =====

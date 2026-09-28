@@ -99,10 +99,61 @@ self.addEventListener('fetch', function(event) {
     );
 });
 
-// ===== Message handler — show notification from main thread =====
+// ===== Reminder state via Cache API (SW can't access localStorage) =====
+var NOTIF_CACHE = 'parking-notif-state';
+
+function checkAndFireReminder() {
+    return caches.open(NOTIF_CACHE).then(function(cache) {
+        return cache.match('reminder-state');
+    }).then(function(response) {
+        if (!response) return;
+        return response.json();
+    }).then(function(state) {
+        if (!state || state.dismissed) return;
+        if (Date.now() >= state.scheduledAt) {
+            var body = state.address
+                ? 'La tua auto è parcheggiata in: ' + state.address
+                : 'Non dimenticare dove hai parcheggiato!';
+            state.dismissed = true;
+            return caches.open(NOTIF_CACHE).then(function(cache) {
+                return cache.put('reminder-state', new Response(JSON.stringify(state), {
+                    headers: { 'Content-Type': 'application/json' }
+                }));
+            }).then(function() {
+                return self.registration.showNotification('\ud83d\ude97 Ricordi dove hai parcheggiato?', {
+                    body: body,
+                    icon: 'logo.svg',
+                    badge: 'logo.svg',
+                    tag: 'parking-reminder',
+                    requireInteraction: true,
+                    vibrate: [100, 50, 100, 50, 100]
+                });
+            });
+        }
+    }).catch(function() {});
+}
+
+// ===== Periodic Background Sync — fires even when app is closed (Android/Chrome) =====
+self.addEventListener('periodicsync', function(event) {
+    if (event.tag === 'check-parking-reminder') {
+        event.waitUntil(checkAndFireReminder());
+    }
+});
+
+// ===== Background Sync fallback =====
+self.addEventListener('sync', function(event) {
+    if (event.tag === 'check-parking-reminder') {
+        event.waitUntil(checkAndFireReminder());
+    }
+});
+
+// ===== Message handler =====
 self.addEventListener('message', function(event) {
     var data = event.data;
-    if (data && data.type === 'SHOW_NOTIFICATION') {
+    if (!data) return;
+
+    // Show notification directly
+    if (data.type === 'SHOW_NOTIFICATION') {
         event.waitUntil(
             self.registration.showNotification(data.title || 'Parcheggio', {
                 body: data.body || '',
@@ -113,6 +164,31 @@ self.addEventListener('message', function(event) {
                 vibrate: [100, 50, 100, 50, 100]
             })
         );
+    }
+
+    // Store reminder state in Cache API (so SW can read it independently)
+    if (data.type === 'SET_REMINDER') {
+        event.waitUntil(
+            caches.open(NOTIF_CACHE).then(function(cache) {
+                return cache.put('reminder-state', new Response(JSON.stringify(data.state), {
+                    headers: { 'Content-Type': 'application/json' }
+                }));
+            })
+        );
+    }
+
+    // Clear reminder (user passed nearby their car)
+    if (data.type === 'CLEAR_REMINDER') {
+        event.waitUntil(
+            caches.open(NOTIF_CACHE).then(function(cache) {
+                return cache.delete('reminder-state');
+            })
+        );
+    }
+
+    // Force check now (e.g. on visibilitychange)
+    if (data.type === 'CHECK_REMINDER') {
+        event.waitUntil(checkAndFireReminder());
     }
 });
 
