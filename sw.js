@@ -1,16 +1,19 @@
 /**
- * Service Worker — Posizione Parcheggio v6
+ * Service Worker — Posizione Parcheggio v7
  * Stale-while-revalidate for app shell, network-only for APIs.
  * Navigation preload enabled for faster page loads.
  * Push notification support for parking reminders.
  */
 
-var CACHE_NAME = 'parcheggio-v6';
+var CACHE_NAME = 'parcheggio-v7';
 var PRECACHE = [
     './',
     './index.html',
     './manifest.json',
     './logo.svg',
+    './icon-192.png',
+    './icon-512.png',
+    './apple-touch-icon.png',
     './og-image.png'
 ];
 
