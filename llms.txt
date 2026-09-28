@@ -1,0 +1,6 @@
+# Posizione Parcheggio
+
+Web app gratuita e installabile (PWA) per salvare la posizione dell'auto parcheggiata, consultare lo storico dei parcheggi e ottenere indicazioni a piedi per ritrovarla. Funziona anche offline; i dati restano salvati solo sul dispositivo dell'utente, nessun server coinvolto.
+
+- [App](https://manfredilocicero.it/)
+- [Autore](https://manfredilocicero.it)

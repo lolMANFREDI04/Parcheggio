@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Security -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://nominatim.openstreetmap.org; worker-src 'self'; frame-ancestors 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://nominatim.openstreetmap.org; worker-src 'self';">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     <!-- App -->
@@ -582,7 +582,6 @@
             margin-top: 8px;
             font-size: 13px;
             color: var(--accent);
-            opacity: 0.7;
         }
 
         /* ===== History ===== */
@@ -1372,7 +1371,7 @@
 </main>
 
 <!-- Maps Modal -->
-<div class="modal-overlay" id="mapsModal" role="dialog" aria-modal="true" aria-labelledby="mapsModalTitle" aria-hidden="true">
+<div class="modal-overlay" id="mapsModal" role="dialog" aria-modal="true" aria-labelledby="mapsModalTitle" aria-hidden="true" inert>
     <div class="modal-sheet">
         <div class="modal-handle" aria-hidden="true"></div>
         <h2 class="modal-title" id="mapsModalTitle">Naviga verso l'auto</h2>
@@ -1382,7 +1381,7 @@
 </div>
 
 <!-- Confirm Delete Dialog -->
-<div class="confirm-overlay" id="confirmOverlay" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmDesc" aria-hidden="true">
+<div class="confirm-overlay" id="confirmOverlay" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmDesc" aria-hidden="true" inert>
     <div class="confirm-dialog">
         <h3 id="confirmTitle">Cancella storico</h3>
         <p id="confirmDesc">Vuoi eliminare tutto lo storico dei parcheggi?</p>
@@ -1402,7 +1401,7 @@
 </button>
 
 <!-- Movements Panel -->
-<div class="movements-overlay" id="movementsOverlay" aria-hidden="true">
+<div class="movements-overlay" id="movementsOverlay" aria-hidden="true" inert>
     <div class="movements-panel" id="movementsPanel" role="dialog" aria-modal="true" aria-labelledby="movementsTitle">
         <div class="movements-header">
             <h2 id="movementsTitle">🛣️ Spostamenti</h2>
@@ -1722,6 +1721,7 @@
         prevFocus = document.activeElement;
         overlay.classList.add('active');
         overlay.setAttribute('aria-hidden', 'false');
+        overlay.inert = false;
         document.body.style.overflow = 'hidden';
         requestAnimationFrame(function() {
             var first = overlay.querySelector('button, [tabindex="0"]');
@@ -1732,6 +1732,7 @@
     function closeModal(overlay) {
         overlay.classList.remove('active');
         overlay.setAttribute('aria-hidden', 'true');
+        overlay.inert = true;
         document.body.style.overflow = '';
         if (prevFocus) { prevFocus.focus(); prevFocus = null; }
     }
@@ -2239,6 +2240,7 @@
         $movementsOverlay.classList.add('active');
         $movementsPanel.classList.add('active');
         $movementsOverlay.setAttribute('aria-hidden', 'false');
+        $movementsOverlay.inert = false;
         document.body.style.overflow = 'hidden';
     }
 
@@ -2246,6 +2248,7 @@
         $movementsOverlay.classList.remove('active');
         $movementsPanel.classList.remove('active');
         $movementsOverlay.setAttribute('aria-hidden', 'true');
+        $movementsOverlay.inert = true;
         document.body.style.overflow = '';
     }
 
