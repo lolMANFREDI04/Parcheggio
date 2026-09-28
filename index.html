@@ -14,7 +14,7 @@
     <meta name="apple-mobile-web-app-title" content="Posizione Parcheggio">
     <title>Posizione Parcheggio | Manfredi Lo Cicero</title>
     <!-- SEO -->
-    <meta name="description" content="Posizione Parcheggio di Manfredi Lo Cicero – Salva la posizione della tua auto, visualizza lo storico e ottieni le indicazioni a piedi per ritrovarla. Web app gratuita.">
+    <meta name="description" content="Posizione Parcheggio di Manfredi Lo Cicero – Web app gratuita per salvare dove hai parcheggiato l'auto, vedere lo storico e ritrovarla a piedi.">
     <meta name="keywords" content="Manfredi Lo Cicero, posizione parcheggio, salva parcheggio, ritrova auto, parcheggio app, dove ho parcheggiato">
     <meta name="author" content="Manfredi Lo Cicero">
     <meta name="robots" content="index, follow">
@@ -28,7 +28,8 @@
     <meta property="og:url" content="https://manfredilocicero.it/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Posizione Parcheggio">
-    <meta property="og:image" content="https://manfredilocicero.it/og-image.svg">
+    <meta property="og:image" content="https://manfredilocicero.it/og-image.png">
+    <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:locale" content="it_IT">
@@ -36,7 +37,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Posizione Parcheggio | Manfredi Lo Cicero">
     <meta name="twitter:description" content="Salva la posizione della tua auto e ritrovala facilmente.">
-    <meta name="twitter:image" content="https://manfredilocicero.it/og-image.svg">
+    <meta name="twitter:image" content="https://manfredilocicero.it/og-image.png">
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
@@ -60,6 +61,46 @@
             "priceCurrency": "EUR"
         },
         "inLanguage": "it"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "È gratuita?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sì, Posizione Parcheggio è una web app gratuita, senza pubblicità né registrazione."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "I miei dati di parcheggio sono privati?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sì. Posizione e storico restano salvati solo sul tuo dispositivo: nessun dato viene inviato o conservato su un server."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Funziona anche senza connessione internet?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sì, è una Progressive Web App: una volta aperta la prima volta, puoi salvare e consultare i parcheggi anche offline."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Devo installare qualcosa?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No, funziona direttamente dal browser. Puoi comunque aggiungerla alla schermata Home per aprirla come un'app."
+                }
+            }
+        ]
     }
     </script>
     <!-- Manifest & Icons -->
@@ -354,6 +395,62 @@
         @keyframes slideUp {
             from { opacity: 0; transform: translate3d(0, 20px, 0); }
             to   { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+
+        /* ===== About / FAQ ===== */
+        .about-section h2 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .how-it-works {
+            padding-left: 20px;
+            margin-bottom: 20px;
+            color: var(--text-dim);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .how-it-works li + li {
+            margin-top: 8px;
+        }
+
+        .how-it-works strong {
+            color: var(--text);
+        }
+
+        .about-section details {
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding: 12px 0;
+        }
+
+        .about-section summary {
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .about-section summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .about-section summary::after {
+            content: '+';
+            float: right;
+            color: var(--accent);
+        }
+
+        .about-section details[open] summary::after {
+            content: '−';
+        }
+
+        .about-section details p {
+            margin-top: 10px;
+            color: var(--text-dim);
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         /* ===== Last Parking ===== */
@@ -1243,6 +1340,34 @@
 
     <!-- History Section (dynamic) -->
     <section id="historySection" aria-label="Storico parcheggi"></section>
+
+    <!-- About / FAQ — static content -->
+    <section class="card about-section" aria-label="Come funziona e domande frequenti">
+        <h2>Come funziona</h2>
+        <ol class="how-it-works">
+            <li>Premi <strong>Salva Parcheggio</strong> appena parcheggi: l'app registra posizione GPS e indirizzo.</li>
+            <li>Consulta lo storico per rivedere i parcheggi salvati in precedenza.</li>
+            <li>Premi <strong>Naviga verso l'auto</strong> per ottenere le indicazioni a piedi fino al punto salvato.</li>
+        </ol>
+
+        <h2>Domande frequenti</h2>
+        <details>
+            <summary>È gratuita?</summary>
+            <p>Sì, Posizione Parcheggio è una web app gratuita, senza pubblicità né registrazione.</p>
+        </details>
+        <details>
+            <summary>I miei dati di parcheggio sono privati?</summary>
+            <p>Sì. Posizione e storico restano salvati solo sul tuo dispositivo: nessun dato viene inviato o conservato su un server.</p>
+        </details>
+        <details>
+            <summary>Funziona anche senza connessione internet?</summary>
+            <p>Sì, è una Progressive Web App: una volta aperta la prima volta, puoi salvare e consultare i parcheggi anche offline.</p>
+        </details>
+        <details>
+            <summary>Devo installare qualcosa?</summary>
+            <p>No, funziona direttamente dal browser. Puoi comunque aggiungerla alla schermata Home per aprirla come un'app.</p>
+        </details>
+    </section>
 </main>
 
 <!-- Maps Modal -->
